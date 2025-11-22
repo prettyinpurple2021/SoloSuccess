@@ -2,25 +2,30 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AgentId, CompetitorReport, WarRoomResponse, IncineratorResponse, Task, BusinessContext, DailyBriefing, FinancialContext, FinancialAudit, PitchDeck, BrandDNA, TechStackAudit, CodeSnippet, SimulationResult, Contact, NegotiationPrep, LegalAnalysis, LegalDocType, BoardMeetingReport, PivotAnalysis, MentalState, MentalCoaching, ProductSpec, RoleplayScenario, RoleplayTurn, RoleplayFeedback, TribeBlueprint, ContentAmplification, LaunchStrategy, JobDescription, InterviewGuide, SOP, SocialStrategy } from "../types";
 import { SYSTEM_INSTRUCTIONS, AGENTS } from "../constants";
+import { storageService } from "./storageService";
+import { apiService } from "./apiService";
 
-// PRODUCTION NOTE: The API key is accessed from process.env on the client side for this prototype.
-// In a production environment, you should proxy these calls through a Next.js Server Action or API Route
-// to keep your API key secure and handle rate limiting/user authentication.
-const apiKey = process.env.API_KEY || '';
+// PRODUCTION CONFIGURATION
+// Set VITE_USE_BACKEND_PROXY=true in .env.local to use the secure backend proxy
+const USE_BACKEND_PROXY = (import.meta as any).env?.VITE_USE_BACKEND_PROXY === 'true';
+const apiKey = (process as any).env?.API_KEY || '';
 
-const getContext = (): string => {
-    // PRODUCTION NOTE: Context is currently retrieved from localStorage.
-    // In production, fetch this from a user profile database (e.g., Postgres/Drizzle).
-    const savedCtx = localStorage.getItem('solo_business_context');
-    const savedDNA = localStorage.getItem('solo_brand_dna');
+if (USE_BACKEND_PROXY) {
+    console.log('🔒 Using secure backend proxy for AI generation');
+} else {
+    console.log('⚠️ Using client-side SDK (development mode only)');
+}
 
-    if (!savedCtx) return "";
+const getContext = async (): Promise<string> => {
+    // PRODUCTION NOTE: Now using storageService (which could be backend-backed).
+    const ctx = await storageService.getContext();
+    const dna = await storageService.getBrandDNA();
 
-    const ctx: BusinessContext = JSON.parse(savedCtx);
+    if (!ctx) return "";
+
     let dnaContext = "";
 
-    if (savedDNA) {
-        const dna: BrandDNA = JSON.parse(savedDNA);
+    if (dna) {
         dnaContext = `
         === BRAND DNA (THE CODEX) ===
         TONE SETTINGS:
@@ -49,46 +54,35 @@ const getContext = (): string => {
     `;
 };
 
-const getDeepMindContext = (): string => {
-    // PRODUCTION NOTE: This function aggregates data from multiple localStorage keys.
-    // In a real system, this would be a backend query aggregating data from Tasks and Reports tables.
+const getDeepMindContext = async (): Promise<string> => {
+    // PRODUCTION NOTE: Aggregating data via storageService.
 
     // 1. Tasks (Tactical Roadmap)
-    const tasksRaw = localStorage.getItem('solo_tactical_tasks');
+    const tasks = await storageService.getTasks();
     let tasksContext = "NO ACTIVE TASKS.";
-    if (tasksRaw) {
-        try {
-            const tasks: Task[] = JSON.parse(tasksRaw);
-            const activeTasks = tasks
-                .filter(t => t.status !== 'done')
-                .sort((a, b) => (a.priority === 'high' ? -1 : 1)) // High priority first
-                .slice(0, 10); // Top 10 only to save tokens
 
-            if (activeTasks.length > 0) {
-                tasksContext = activeTasks.map(t =>
-                    `- [${t.priority.toUpperCase()}] ${t.title} (Assignee: ${t.assignee.toUpperCase()}, Status: ${t.status})`
-                ).join('\n');
-            }
-        } catch (e) {
-            console.error("Error parsing tasks for context", e);
+    if (tasks.length > 0) {
+        const activeTasks = tasks
+            .filter(t => t.status !== 'done')
+            .sort((a, b) => (a.priority === 'high' ? -1 : 1)) // High priority first
+            .slice(0, 10); // Top 10 only to save tokens
+
+        if (activeTasks.length > 0) {
+            tasksContext = activeTasks.map(t =>
+                `- [${t.priority.toUpperCase()}] ${t.title} (Assignee: ${t.assignee.toUpperCase()}, Status: ${t.status})`
+            ).join('\n');
         }
     }
 
     // 2. Intel (Competitor Stalker)
-    const reportsRaw = localStorage.getItem('solo_competitor_reports');
+    const reports = await storageService.getCompetitorReports();
     let intelContext = "NO INTELLIGENCE REPORTS.";
-    if (reportsRaw) {
-        try {
-            const reports: CompetitorReport[] = JSON.parse(reportsRaw);
-            const recentReports = reports.slice(0, 5); // Top 5 most recent
-            if (recentReports.length > 0) {
-                intelContext = recentReports.map(r =>
-                    `- ${r.competitorName}: Threat Level ${r.threatLevel}. Vulnerabilities: ${r.vulnerabilities.slice(0, 2).join(', ')}`
-                ).join('\n');
-            }
-        } catch (e) {
-            console.error("Error parsing reports for context", e);
-        }
+
+    if (reports.length > 0) {
+        const recentReports = reports.slice(0, 5); // Top 5 most recent
+        intelContext = recentReports.map(r =>
+            `- ${r.competitorName}: Threat Level ${r.threatLevel}. Vulnerabilities: ${r.vulnerabilities.slice(0, 2).join(', ')}`
+        ).join('\n');
     }
 
     return `
@@ -109,31 +103,53 @@ export const getAgentResponse = async (
     history: { role: 'user' | 'model', text: string }[],
     newMessage: string
 ): Promise<string> => {
+    const businessContext = await getContext();
+    const deepMindContext = await getDeepMindContext();
+    const systemInstruction = await storageService.getSystemInstructions(agentId) || SYSTEM_INSTRUCTIONS[agentId];
+
+    const fullSystemInstruction = `
+        ${systemInstruction}
+        
+        ${businessContext}
+        
+        ${deepMindContext}
+        
+        INSTRUCTIONS:
+        - You have full visibility into the user's "Tasks" and "Competitor Intel" listed above.
+        - If the user asks "What should I do?", reference the high-priority tasks.
+        - If the user asks about strategy, reference the competitor vulnerabilities.
+        - Do not explicitly mention "Deep Mind" or "System Data Layer" unless asked; just act like you know this info naturally.
+    `;
+
+    // PRODUCTION: Use backend proxy when enabled
+    if (USE_BACKEND_PROXY) {
+        try {
+            const text = await apiService.generate({
+                prompt: newMessage,
+                systemInstruction: fullSystemInstruction,
+                model: 'gemini-2.5-flash',
+                history,
+                temperature: 0.8
+            });
+            return text || "No response generated.";
+        } catch (error) {
+            console.error("Backend Proxy Error:", error);
+            return "Connection lost. The agent is currently offline.";
+        }
+    }
+
+    // DEVELOPMENT: Use client-side SDK (fallback)
     if (!apiKey) {
         return "ERR: NO_API_KEY_DETECTED. Please configure your environment.";
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const businessContext = getContext();
-    const deepMindContext = getDeepMindContext();
 
     try {
         const chat = ai.chats.create({
             model: 'gemini-2.5-flash',
             config: {
-                systemInstruction: `
-                ${SYSTEM_INSTRUCTIONS[agentId]}
-                
-                ${businessContext}
-                
-                ${deepMindContext}
-                
-                INSTRUCTIONS:
-                - You have full visibility into the user's "Tasks" and "Competitor Intel" listed above.
-                - If the user asks "What should I do?", reference the high-priority tasks.
-                - If the user asks about strategy, reference the competitor vulnerabilities.
-                - Do not explicitly mention "Deep Mind" or "System Data Layer" unless asked; just act like you know this info naturally.
-            `,
+                systemInstruction: fullSystemInstruction,
                 temperature: 0.8,
             },
             history: history.map(h => ({
@@ -155,7 +171,8 @@ export const generateCompetitorReport = async (competitorName: string, agentId: 
 
     const ai = new GoogleGenAI({ apiKey });
     const agent = AGENTS[agentId];
-    const context = getContext();
+    const context = await getContext();
+    const persona = await storageService.getSystemInstructions(agentId) || SYSTEM_INSTRUCTIONS[agentId];
 
     const prompt = `
       ${context}
@@ -163,7 +180,7 @@ export const generateCompetitorReport = async (competitorName: string, agentId: 
       Generate a classified intelligence dossier for the competitor: "${competitorName}".
       
       You are acting as ${agent.name}, the ${agent.title}.
-      Your core persona: ${SYSTEM_INSTRUCTIONS[agentId]}
+      Your core persona: ${persona}
 
       MISSION:
       Analyze this competitor specifically through your unique lens.
@@ -230,8 +247,8 @@ export const generateCompetitorReport = async (competitorName: string, agentId: 
 export const generateWarRoomDebate = async (topic: string): Promise<WarRoomResponse | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
-    const deepMindContext = getDeepMindContext();
+    const context = await getContext();
+    const deepMindContext = await getDeepMindContext();
     const prompt = `${context}\n${deepMindContext}\nThe user has convened "The War Room" to discuss: "${topic}". Simulate a debate between Roxy, Echo, Lexi, Glitch. Return JSON with dialogue, consensus, and actionPlan.`;
     try {
         const response = await ai.models.generateContent({
@@ -256,7 +273,7 @@ export const generateWarRoomDebate = async (topic: string): Promise<WarRoomRespo
 export const generateIncineratorFeedback = async (content: string, mode: 'roast' | 'forge', brutality: number): Promise<IncineratorResponse | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
     const prompt = `${context}\nIncinerator Mode. Content: "${content}". Mode: ${mode}. Brutality: ${brutality}. Return JSON with roastSummary, survivalScore, feedback, rewrittenContent.`;
     try {
         const response = await ai.models.generateContent({
@@ -271,7 +288,7 @@ export const generateIncineratorFeedback = async (content: string, mode: 'roast'
 export const generateTacticalPlan = async (goal: string): Promise<Task[] | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
     const prompt = `${context}\nGoal: "${goal}". Break into tasks for Roxy, Echo, Lexi, Glitch. Return JSON array of tasks.`;
     try {
         const response = await ai.models.generateContent({
@@ -287,8 +304,8 @@ export const generateTacticalPlan = async (goal: string): Promise<Task[] | null>
 export const generateDailyBriefing = async (): Promise<DailyBriefing | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
-    const deepMind = getDeepMindContext();
+    const context = await getContext();
+    const deepMind = await getDeepMindContext();
     const prompt = `${context}\n${deepMind}\nGenerate Daily Briefing. Return JSON with summary, focusPoints, threatAlerts, motivationalQuote.`;
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: { type: Type.OBJECT, properties: { date: { type: Type.STRING }, summary: { type: Type.STRING }, focusPoints: { type: Type.ARRAY, items: { type: Type.STRING } }, threatAlerts: { type: Type.ARRAY, items: { type: Type.STRING } }, motivationalQuote: { type: Type.STRING } } } } });
@@ -299,7 +316,7 @@ export const generateDailyBriefing = async (): Promise<DailyBriefing | null> => 
 export const generateMarketPulse = async (): Promise<{ content: string, sources: any[] } | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
     const prompt = `${context}\nSearch for market trends/news for this industry. Summary bullet points.`;
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { tools: [{ googleSearch: {} }] } });
@@ -312,7 +329,7 @@ export const generateMarketPulse = async (): Promise<{ content: string, sources:
 export const generateBrandImage = async (promptUser: string, styleDesc: string): Promise<string | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
     const prompt = `${context}\nImage Gen: ${promptUser}. Style: ${styleDesc}.`;
     try {
         const response = await ai.models.generateImages({ model: 'imagen-4.0-generate-001', prompt, config: { numberOfImages: 1, aspectRatio: '16:9', outputMimeType: 'image/jpeg' } });
@@ -324,7 +341,7 @@ export const generateBrandImage = async (promptUser: string, styleDesc: string):
 export const generatePitchDeck = async (): Promise<PitchDeck | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
     const prompt = `${context}\nGenerate 10-slide pitch deck. Return JSON with title, slides (title, keyPoint, content, visualIdea).`;
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: { type: Type.OBJECT, properties: { title: { type: Type.STRING }, slides: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { title: { type: Type.STRING }, keyPoint: { type: Type.STRING }, content: { type: Type.ARRAY, items: { type: Type.STRING } }, visualIdea: { type: Type.STRING } } } } } } } });
@@ -375,7 +392,7 @@ export const runSimulation = async (scenario: string): Promise<SimulationResult 
 export const generateColdEmail = async (contact: Contact): Promise<string | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
     const prompt = `${context}\nDraft cold email for ${contact.name}, ${contact.role} at ${contact.company}. Notes: ${contact.notes}.`;
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "text/plain" } });
@@ -386,7 +403,7 @@ export const generateColdEmail = async (contact: Contact): Promise<string | null
 export const generateNegotiationPrep = async (contact: Contact): Promise<NegotiationPrep | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
     const prompt = `${context}\nNegotiation prep for ${contact.name}. Return JSON with strategy, leveragePoints, psychologicalProfile, openingLine.`;
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: { type: Type.OBJECT, properties: { strategy: { type: Type.STRING }, leveragePoints: { type: Type.ARRAY, items: { type: Type.STRING } }, psychologicalProfile: { type: Type.STRING }, openingLine: { type: Type.STRING } } } } });
@@ -397,8 +414,8 @@ export const generateNegotiationPrep = async (contact: Contact): Promise<Negotia
 export const draftLegalDoc = async (type: LegalDocType, details: string): Promise<string | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
-    const persona = SYSTEM_INSTRUCTIONS[AgentId.LUMI];
+    const context = await getContext();
+    const persona = await storageService.getSystemInstructions(AgentId.LUMI) || SYSTEM_INSTRUCTIONS[AgentId.LUMI];
     const prompt = `${context}\n${persona}\nDraft ${type}. Details: ${details}. Include strict standard legal disclaimer that this is AI generated.`;
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "text/plain" } });
@@ -409,8 +426,8 @@ export const draftLegalDoc = async (type: LegalDocType, details: string): Promis
 export const analyzeContract = async (text: string): Promise<LegalAnalysis | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
-    const persona = SYSTEM_INSTRUCTIONS[AgentId.LUMI];
+    const context = await getContext();
+    const persona = await storageService.getSystemInstructions(AgentId.LUMI) || SYSTEM_INSTRUCTIONS[AgentId.LUMI];
     const prompt = `${context}\n${persona}\nAnalyze contract: ${text.substring(0, 20000)}. Return JSON with safetyScore, verdict, criticalRisks, suggestions.`;
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: { type: Type.OBJECT, properties: { safetyScore: { type: Type.NUMBER }, verdict: { type: Type.STRING }, criticalRisks: { type: Type.ARRAY, items: { type: Type.STRING } }, suggestions: { type: Type.ARRAY, items: { type: Type.STRING } } } } } });
@@ -440,7 +457,7 @@ export const generateBoardMeetingReport = async (fin: FinancialContext, tasks: T
 export const findBlueOceans = async (): Promise<PivotAnalysis | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
     const prompt = `${context}\nFind 3 Blue Ocean market gaps. Return JSON.`;
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: { type: Type.OBJECT, properties: { currentIndustry: { type: Type.STRING }, gaps: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, description: { type: Type.STRING }, competitionScore: { type: Type.NUMBER }, profitabilityScore: { type: Type.NUMBER }, soloFitScore: { type: Type.NUMBER }, whyItWorks: { type: Type.STRING }, firstStep: { type: Type.STRING } } } } } } } });
@@ -461,7 +478,7 @@ export const generateStoicCoaching = async (state: MentalState): Promise<MentalC
 export const generateProductSpec = async (idea: string): Promise<ProductSpec | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
     const prompt = `${context}\nGenerate PRD for "${idea}". Return JSON.`;
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: { type: Type.OBJECT, properties: { featureName: { type: Type.STRING }, summary: { type: Type.STRING }, features: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, userStory: { type: Type.STRING }, acceptanceCriteria: { type: Type.ARRAY, items: { type: Type.STRING } }, techNotes: { type: Type.STRING } } } }, dataModel: { type: Type.ARRAY, items: { type: Type.STRING } } } } } });
@@ -492,7 +509,7 @@ export const evaluateRoleplaySession = async (scenario: RoleplayScenario, histor
 export const generateTribeBlueprint = async (audience: string, enemy: string): Promise<TribeBlueprint | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
     const prompt = `${context}\nGenerate Tribe Blueprint. Audience: ${audience}. Enemy: ${enemy}. Return JSON.`;
     try {
         const response = await ai.models.generateContent({
@@ -536,7 +553,7 @@ export const generateTribeBlueprint = async (audience: string, enemy: string): P
 export const generateAmplifiedContent = async (source: string): Promise<ContentAmplification | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
     const prompt = `${context}\nAmplify content: "${source}". Return JSON with sourceTitle, twitterThread, linkedinPost, tiktokScript, newsletterSection.`;
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: { type: Type.OBJECT, properties: { sourceTitle: { type: Type.STRING }, twitterThread: { type: Type.ARRAY, items: { type: Type.STRING } }, linkedinPost: { type: Type.STRING }, tiktokScript: { type: Type.STRING }, newsletterSection: { type: Type.STRING } } } } });
@@ -547,7 +564,7 @@ export const generateAmplifiedContent = async (source: string): Promise<ContentA
 export const generateSocialStrategy = async (): Promise<SocialStrategy | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
     const prompt = `
         ${context}
         
@@ -612,7 +629,7 @@ export const generateSocialStrategy = async (): Promise<SocialStrategy | null> =
 export const generateLaunchStrategy = async (product: string, date: string): Promise<LaunchStrategy | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
     const prompt = `${context}\nLaunch Strategy for "${product}" on ${date}. Return JSON with phases (name, events(day, title, description, owner, channel)).`;
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: { type: Type.OBJECT, properties: { productName: { type: Type.STRING }, launchDate: { type: Type.STRING }, phases: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, events: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { day: { type: Type.STRING }, title: { type: Type.STRING }, description: { type: Type.STRING }, owner: { type: Type.STRING }, channel: { type: Type.STRING } } } } } } } } } } });
@@ -623,7 +640,7 @@ export const generateLaunchStrategy = async (product: string, date: string): Pro
 export const generateJobDescription = async (roleTitle: string, employmentType: string): Promise<JobDescription | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
 
     const prompt = `
         ${context}
@@ -680,7 +697,7 @@ export const generateJobDescription = async (roleTitle: string, employmentType: 
 export const generateInterviewGuide = async (roleTitle: string, keyFocus: string): Promise<InterviewGuide | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
 
     const prompt = `
         ${context}
@@ -746,7 +763,7 @@ export const generateInterviewGuide = async (roleTitle: string, keyFocus: string
 export const generateSOP = async (taskName: string): Promise<SOP | null> => {
     if (!apiKey) return null;
     const ai = new GoogleGenAI({ apiKey });
-    const context = getContext();
+    const context = await getContext();
 
     const prompt = `
         ${context}

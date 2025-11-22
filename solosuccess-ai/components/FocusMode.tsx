@@ -110,7 +110,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ activeTask, onExit, onComp
                 <div className="relative mb-12 group">
                     <div className={`absolute inset-0 rounded-full bg-emerald-500/20 blur-3xl transition-all duration-[4000ms] ${pulse ? 'scale-110 opacity-40' : 'scale-90 opacity-10'}`}></div>
 
-                    <div className="w-80 h-80 md:w-96 md:h-96 rounded-full border-8 border-zinc-900 flex items-center justify-center relative bg-black">
+                    <div className="w-72 h-72 md:w-96 md:h-96 rounded-full border-8 border-zinc-900 flex items-center justify-center relative bg-black">
                         {/* Progress Circle */}
                         <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
                             <circle

@@ -7,6 +7,7 @@ import { AgentChat } from './components/AgentChat';
 import { WarRoom } from './components/WarRoom';
 import { IdeaIncinerator } from './components/IdeaIncinerator';
 import { TacticalRoadmap } from './components/TacticalRoadmap';
+import { storageService } from './services/storageService';
 import { Treasury } from './components/Treasury';
 import { SystemBoot } from './components/SystemBoot';
 import { CommandPalette } from './components/CommandPalette';
@@ -54,11 +55,14 @@ function App() {
   const [incomingAgentMessage, setIncomingAgentMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const context = localStorage.getItem('solo_business_context');
-    if (context) {
-      setIsBooted(true);
-    }
-    setCheckingBoot(false);
+    const checkBoot = async () => {
+      const context = await storageService.getContext();
+      if (context) {
+        setIsBooted(true);
+      }
+      setCheckingBoot(false);
+    };
+    checkBoot();
   }, []);
 
   // Swipe gestures for mobile sidebar
@@ -102,15 +106,12 @@ function App() {
     setFocusTask(task);
   };
 
-  const handleFocusComplete = (taskId: string) => {
-    // PRODUCTION NOTE: Task completion logic manipulates localStorage directly.
-    // In production, call a mutation API endpoint (e.g., `await updateTaskStatus(id, 'done')`).
-    const saved = localStorage.getItem('solo_tactical_tasks');
-    if (saved) {
-      const tasks: Task[] = JSON.parse(saved);
-      const updated = tasks.map(t => t.id === taskId ? { ...t, status: 'done' as const, completedAt: new Date().toISOString() } : t);
-      localStorage.setItem('solo_tactical_tasks', JSON.stringify(updated));
-    }
+  const handleFocusComplete = async (taskId: string) => {
+    // PRODUCTION NOTE: Now using storageService for persistence.
+    await storageService.updateTask(taskId, {
+      status: 'done',
+      completedAt: new Date().toISOString()
+    });
     setFocusTask(null);
   };
 

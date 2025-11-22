@@ -4,6 +4,7 @@ import { Settings as SettingsIcon, Save, AlertTriangle, RefreshCcw, Monitor, Dat
 import { BusinessContext } from '../types';
 import { showToast } from '../services/gameService';
 import { soundService } from '../services/soundService';
+import { storageService } from '../services/storageService';
 
 export const Settings: React.FC = () => {
     const [context, setContext] = useState<BusinessContext>({
@@ -16,37 +17,34 @@ export const Settings: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        const savedCtx = localStorage.getItem('solo_business_context');
-        if (savedCtx) {
-            setContext(JSON.parse(savedCtx));
-        }
+        const loadContext = async () => {
+            const savedCtx = await storageService.getContext();
+            if (savedCtx) {
+                setContext(savedCtx);
+            }
+        };
+        loadContext();
     }, []);
 
-    const handleSave = () => {
-        // PRODUCTION NOTE: User settings saved to localStorage.
+    const handleSave = async () => {
+        // PRODUCTION NOTE: User settings saved via storageService.
         // Replace with user profile update via API/Server Action.
-        localStorage.setItem('solo_business_context', JSON.stringify(context));
+        await storageService.saveContext(context);
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
         // Force reload to update global context in app
         setTimeout(() => window.location.reload(), 500);
     };
 
-    const handleFactoryReset = () => {
+    const handleFactoryReset = async () => {
         if (confirm("CRITICAL WARNING: This will delete ALL data (Tasks, Reports, History, Settings). Are you sure?")) {
-            localStorage.clear();
+            await storageService.clearAll();
             window.location.reload();
         }
     };
 
-    const handleExportData = () => {
-        const allData: Record<string, any> = {};
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('solo_')) {
-                allData[key] = localStorage.getItem(key);
-            }
-        }
+    const handleExportData = async () => {
+        const allData = await storageService.exportData();
 
         const blob = new Blob([JSON.stringify(allData)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -69,14 +67,10 @@ export const Settings: React.FC = () => {
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (ev) => {
+        reader.onload = async (ev) => {
             try {
                 const data = JSON.parse(ev.target?.result as string);
-                Object.keys(data).forEach(key => {
-                    if (key.startsWith('solo_')) {
-                        localStorage.setItem(key, data[key]);
-                    }
-                });
+                await storageService.importData(data);
                 showToast("RESTORE COMPLETE", "System data restored. Rebooting...", "success");
                 soundService.playSuccess();
                 setTimeout(() => window.location.reload(), 1500);

@@ -1,7 +1,7 @@
 import { UserProgress, ToastMessage } from "../types";
 import { storageService } from "./storageService";
 
-const STORAGE_KEY = 'solo_user_progress';
+
 
 const RANKS = [
     { level: 1, title: "Garage Hacker" },

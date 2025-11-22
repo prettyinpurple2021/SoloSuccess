@@ -1,9 +1,11 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { db } from './db';
 import { users, tasks, chatHistory, competitorReports, businessContext } from './db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { z } from 'zod';
+import { GoogleGenAI } from '@google/genai';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,6 +14,61 @@ app.use(cors());
 app.use(express.json());
 
 // --- Routes ---
+
+// AI Generation Proxy
+app.post('/api/generate', async (req, res) => {
+    try {
+        const { prompt, systemInstruction, model, history, temperature, maxOutputTokens } = req.body;
+        const apiKey = process.env.GEMINI_API_KEY;
+
+        if (!apiKey) {
+            console.error("GEMINI_API_KEY not found");
+            return res.status(500).json({ error: 'Server configuration error: API Key missing' });
+        }
+
+        const ai = new GoogleGenAI({ apiKey });
+        const targetModel = model || 'gemini-2.5-flash'; // Default fallback
+
+        if (history && Array.isArray(history)) {
+            // Chat Mode - uses chats.create like in geminiService.ts
+            const formattedHistory = history.map((h: any) => ({
+                role: h.role,
+                parts: [{ text: h.text }]
+            }));
+
+            const chat = ai.chats.create({
+                model: targetModel,
+                config: {
+                    systemInstruction,
+                    temperature: temperature || 0.8,
+                    maxOutputTokens
+                },
+                history: formattedHistory
+            });
+
+            const result = await chat.sendMessage({ message: prompt });
+            res.json({ text: result.text || '' });
+        } else {
+            // Single Generation Mode - no history, just a one-off generation
+            // Use the same chat interface but with empty history
+            const chat = ai.chats.create({
+                model: targetModel,
+                config: {
+                    systemInstruction,
+                    temperature: temperature || 0.7,
+                    maxOutputTokens
+                },
+                history: []
+            });
+
+            const result = await chat.sendMessage({ message: prompt });
+            res.json({ text: result.text || '' });
+        }
+    } catch (error) {
+        console.error("Generation error:", error);
+        res.status(500).json({ error: 'Generation failed' });
+    }
+});
 
 // Health Check
 app.get('/api/health', (req, res) => {

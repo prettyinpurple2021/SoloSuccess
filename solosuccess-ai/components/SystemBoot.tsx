@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Terminal, ArrowRight, Check } from 'lucide-react';
 import { BusinessContext } from '../types';
+import { storageService } from '../services/storageService';
 
 interface SystemBootProps {
     onComplete: () => void;
@@ -40,7 +41,7 @@ export const SystemBoot: React.FC<SystemBootProps> = ({ onComplete }) => {
         });
     }, []);
 
-    const handleNext = () => {
+    const handleNext = async () => {
         const value = formData[activeField];
         if (typeof value !== 'string' || !value.trim()) return;
 
@@ -48,9 +49,8 @@ export const SystemBoot: React.FC<SystemBootProps> = ({ onComplete }) => {
         else if (activeField === 'companyName') setActiveField('industry');
         else if (activeField === 'industry') setActiveField('description');
         else {
-            // PRODUCTION NOTE: Persist user profile.
-            // In production: await fetch('/api/user/setup', { method: 'POST', body: JSON.stringify(formData) });
-            localStorage.setItem('solo_business_context', JSON.stringify(formData));
+            // PRODUCTION NOTE: Persist user profile via storageService.
+            await storageService.saveContext(formData);
             setStep(2); // Success animation
             setTimeout(onComplete, 2000);
         }

@@ -5,20 +5,18 @@ import { PitchDeck, Slide } from '../types';
 import { addXP, showToast } from '../services/gameService';
 import { soundService } from '../services/soundService';
 import { downloadMarkdown } from '../services/exportService';
+import { storageService } from '../services/storageService';
 
 export const TheDeck: React.FC = () => {
     const [deck, setDeck] = useState<PitchDeck | null>(null);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [loading, setLoading] = useState(false);
 
-    const saveToVault = (newDeck: PitchDeck) => {
-        // PRODUCTION NOTE: Persistence via localStorage.
-        // In production: await db.insert(pitchDecks).values(newDeck);
-        const savedRaw = localStorage.getItem('solo_pitch_decks');
-        const savedDecks: PitchDeck[] = savedRaw ? JSON.parse(savedRaw) : [];
+    const saveToVault = async (newDeck: PitchDeck) => {
+        // PRODUCTION NOTE: Persistence via storageService.
         // Ensure ID exists (for older items)
         const deckWithId = { ...newDeck, id: newDeck.id || `deck-${Date.now()}` };
-        localStorage.setItem('solo_pitch_decks', JSON.stringify([deckWithId, ...savedDecks]));
+        await storageService.savePitchDeck(deckWithId);
     };
 
     const handleGenerate = async () => {
@@ -28,11 +26,11 @@ export const TheDeck: React.FC = () => {
         if (result) {
             // Assign ID
             result.id = `deck-${Date.now()}`;
-            
+
             setDeck(result);
-            saveToVault(result);
+            await saveToVault(result);
             setCurrentSlide(0);
-            
+
             const { leveledUp } = await addXP(100);
             showToast("DECK GENERATED", "Saved to The Vault.", "xp", 100);
             if (leveledUp) showToast("RANK UP!", "You have reached a new founder level.", "success");
@@ -74,38 +72,38 @@ export const TheDeck: React.FC = () => {
 
     return (
         <div className="min-h-[85vh] flex flex-col animate-in fade-in duration-500">
-             {/* Header */}
-             <div className="mb-6 flex items-end justify-between border-b border-zinc-800 pb-6">
+            {/* Header */}
+            <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between border-b border-zinc-800 pb-6 gap-4 md:gap-0">
                 <div>
                     <div className="flex items-center gap-2 text-purple-500 font-mono text-xs font-bold uppercase tracking-widest mb-2">
                         <Presentation size={14} /> Investor Relations
                     </div>
-                    <h2 className="text-4xl font-black text-white tracking-tighter">THE DECK</h2>
+                    <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter">THE DECK</h2>
                     <p className="text-zinc-400 mt-2">AI-generated pitch deck outlines and narrative flow.</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full md:w-auto">
                     {deck && (
-                        <button 
+                        <button
                             onClick={handleExport}
-                            className="flex items-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white rounded font-bold text-xs uppercase tracking-wider transition-all"
+                            className="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white rounded font-bold text-xs uppercase tracking-wider transition-all flex-1 md:flex-initial"
                         >
                             <Download size={16} /> Export
                         </button>
                     )}
-                    <button 
+                    <button
                         onClick={handleGenerate}
                         disabled={loading}
-                        className="flex items-center gap-2 px-6 py-3 bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/50 text-purple-400 rounded font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/50 text-purple-400 rounded font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-1 md:flex-initial"
                     >
                         {loading ? <RefreshCcw size={16} className="animate-spin" /> : <Layout size={16} />}
-                        {loading ? 'Drafting Slides...' : 'Generate Deck'}
+                        {loading ? 'Drafting...' : 'Generate Deck'}
                     </button>
                 </div>
             </div>
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col justify-center items-center relative">
-                
+
                 {!deck && !loading && (
                     <div className="text-center opacity-50 text-zinc-500">
                         <MonitorPlay size={64} strokeWidth={1} className="mx-auto mb-4" />
@@ -128,25 +126,27 @@ export const TheDeck: React.FC = () => {
                         </div>
 
                         {/* Controls */}
-                        <button 
-                            onClick={handlePrev}
-                            disabled={currentSlide === 0}
-                            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 p-3 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-purple-500 disabled:opacity-30 disabled:hover:border-zinc-800 transition-all"
-                        >
-                            <ChevronLeft size={24} />
-                        </button>
+                        <div className="flex justify-between absolute top-1/2 -translate-y-1/2 w-full -ml-4 md:-ml-16 px-2 md:px-0 z-20 pointer-events-none">
+                            <button
+                                onClick={handlePrev}
+                                disabled={currentSlide === 0}
+                                className="pointer-events-auto p-3 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-purple-500 disabled:opacity-30 disabled:hover:border-zinc-800 transition-all shadow-xl"
+                            >
+                                <ChevronLeft size={24} />
+                            </button>
 
-                        <button 
-                            onClick={handleNext}
-                            disabled={currentSlide === deck.slides.length - 1}
-                            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 p-3 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-purple-500 disabled:opacity-30 disabled:hover:border-zinc-800 transition-all"
-                        >
-                            <ChevronRight size={24} />
-                        </button>
+                            <button
+                                onClick={handleNext}
+                                disabled={currentSlide === deck.slides.length - 1}
+                                className="pointer-events-auto p-3 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-purple-500 disabled:opacity-30 disabled:hover:border-zinc-800 transition-all shadow-xl translate-x-8 md:translate-x-0"
+                            >
+                                <ChevronRight size={24} />
+                            </button>
+                        </div>
 
                         {/* Slide Card */}
-                        <div className="bg-white text-black aspect-video rounded-xl p-12 shadow-2xl flex flex-col relative overflow-hidden animate-in zoom-in-95 duration-500 key={currentSlide}">
-                            
+                        <div className="bg-white text-black aspect-auto md:aspect-video rounded-xl p-6 md:p-12 shadow-2xl flex flex-col relative overflow-hidden animate-in zoom-in-95 duration-500 key={currentSlide}">
+
                             <div className="absolute top-0 left-0 w-2 h-full bg-purple-600"></div>
                             <div className="absolute bottom-6 right-8 text-zinc-400 font-mono text-xs uppercase">
                                 Slide {currentSlide + 1}/{deck.slides.length} // {deck.title}
@@ -159,7 +159,7 @@ export const TheDeck: React.FC = () => {
                                 <Layout size={18} /> {deck.slides[currentSlide].keyPoint}
                             </p>
 
-                            <div className="grid grid-cols-2 gap-12 flex-1">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 flex-1">
                                 <div className="space-y-4">
                                     {deck.slides[currentSlide].content.map((point, i) => (
                                         <div key={i} className="flex items-start gap-3 text-lg text-zinc-700 leading-relaxed">
@@ -168,7 +168,7 @@ export const TheDeck: React.FC = () => {
                                         </div>
                                     ))}
                                 </div>
-                                
+
                                 {/* Visual Placeholder */}
                                 <div className="bg-zinc-100 border-2 border-dashed border-zinc-300 rounded-lg flex flex-col items-center justify-center p-6 text-center text-zinc-400">
                                     <FileText size={32} className="mb-2 opacity-50" />
@@ -181,7 +181,7 @@ export const TheDeck: React.FC = () => {
                         {/* Slide Strip Navigation */}
                         <div className="flex justify-center gap-2 mt-8">
                             {deck.slides.map((_, i) => (
-                                <button 
+                                <button
                                     key={i}
                                     onClick={() => setCurrentSlide(i)}
                                     className={`w-2 h-2 rounded-full transition-all ${i === currentSlide ? 'w-8 bg-purple-500' : 'bg-zinc-800 hover:bg-zinc-600'}`}
