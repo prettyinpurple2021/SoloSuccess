@@ -18,7 +18,7 @@ export const ThePivot: React.FC = () => {
         const result = await findBlueOceans();
         if (result) {
             setAnalysis(result);
-            
+
             // PRODUCTION NOTE: 
             // Market gap analysis should be saved to the user's profile 
             // or a 'Strategies' table so they can reference it later.
@@ -36,19 +36,19 @@ export const ThePivot: React.FC = () => {
 
     return (
         <div className="min-h-[85vh] flex flex-col animate-in fade-in duration-500">
-             {/* Header */}
-             <div className="mb-6 flex items-end justify-between border-b border-zinc-800 pb-6">
+            {/* Header */}
+            <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between border-b border-zinc-800 pb-6 gap-4 md:gap-0">
                 <div>
                     <div className="flex items-center gap-2 text-cyan-400 font-mono text-xs font-bold uppercase tracking-widest mb-2">
                         <Compass size={14} /> Market Explorer
                     </div>
-                    <h2 className="text-4xl font-black text-white tracking-tighter">THE PIVOT</h2>
+                    <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter">THE PIVOT</h2>
                     <p className="text-zinc-400 mt-2">Identify low-competition "Blue Ocean" opportunities.</p>
                 </div>
-                <button 
+                <button
                     onClick={handleScan}
                     disabled={loading}
-                    className="flex items-center gap-2 px-8 py-4 bg-cyan-900/20 hover:bg-cyan-900/40 border border-cyan-500/50 text-cyan-400 rounded font-bold text-sm uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-900/20"
+                    className="flex items-center justify-center w-full md:w-auto gap-2 px-8 py-4 bg-cyan-900/20 hover:bg-cyan-900/40 border border-cyan-500/50 text-cyan-400 rounded font-bold text-sm uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-900/20"
                 >
                     {loading ? <Loader2 size={18} className="animate-spin" /> : <Map size={18} />}
                     {loading ? 'Scanning Sectors...' : 'Find Blue Oceans'}
@@ -65,13 +65,13 @@ export const ThePivot: React.FC = () => {
                 )}
 
                 {loading && (
-                     <div className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+                    <div className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
                         <div className="relative">
                             <div className="w-24 h-24 border-4 border-cyan-900/30 rounded-full animate-spin-slow"></div>
                             <div className="absolute inset-0 m-auto w-16 h-16 border-4 border-cyan-500 rounded-full animate-spin"></div>
                         </div>
                         <p className="mt-8 font-mono text-cyan-500 uppercase tracking-widest animate-pulse">Triangulating Market Gaps...</p>
-                     </div>
+                    </div>
                 )}
 
                 {analysis && (
@@ -85,7 +85,7 @@ export const ThePivot: React.FC = () => {
                             {analysis.gaps.map((gap, i) => (
                                 <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-cyan-500/50 transition-all group flex flex-col relative overflow-hidden">
                                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-blue-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                                    
+
                                     <h3 className="text-xl font-black text-white mb-2 group-hover:text-cyan-400 transition-colors">{gap.name}</h3>
                                     <p className="text-sm text-zinc-400 mb-6 flex-1">{gap.description}</p>
 
@@ -129,7 +129,7 @@ export const ThePivot: React.FC = () => {
                                 </div>
                             ))}
                         </div>
-                        
+
                         <div className="bg-zinc-950 border border-zinc-800 p-4 rounded-lg flex items-start gap-3">
                             <AlertCircle className="text-zinc-500 mt-1" size={16} />
                             <p className="text-xs text-zinc-500 font-mono">

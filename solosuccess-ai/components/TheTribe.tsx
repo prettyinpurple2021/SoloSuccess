@@ -14,7 +14,7 @@ export const TheTribe: React.FC = () => {
     useEffect(() => {
         const saved = localStorage.getItem('solo_tribe_blueprint');
         if (saved) {
-            try { setBlueprint(JSON.parse(saved)); } catch (e) {}
+            try { setBlueprint(JSON.parse(saved)); } catch (e) { }
         }
     }, []);
 
@@ -29,7 +29,7 @@ export const TheTribe: React.FC = () => {
             // PRODUCTION NOTE: Persistence via localStorage.
             // In production: await db.insert(tribes).values(result);
             localStorage.setItem('solo_tribe_blueprint', JSON.stringify(result));
-            
+
             const { leveledUp } = await addXP(100);
             showToast("TRIBE FOUNDED", "Community architecture defined.", "xp", 100);
             if (leveledUp) showToast("RANK UP!", "New founder level reached.", "success");
@@ -42,7 +42,7 @@ export const TheTribe: React.FC = () => {
     };
 
     const handleReset = () => {
-        if(confirm("Dissolve existing tribe strategy?")) {
+        if (confirm("Dissolve existing tribe strategy?")) {
             setBlueprint(null);
             localStorage.removeItem('solo_tribe_blueprint');
         }
@@ -50,19 +50,19 @@ export const TheTribe: React.FC = () => {
 
     return (
         <div className="min-h-[85vh] flex flex-col animate-in fade-in duration-500">
-             {/* Header */}
-             <div className="mb-6 flex items-end justify-between border-b border-zinc-800 pb-6">
+            {/* Header */}
+            <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between border-b border-zinc-800 pb-6 gap-4 md:gap-0">
                 <div>
                     <div className="flex items-center gap-2 text-pink-400 font-mono text-xs font-bold uppercase tracking-widest mb-2">
                         <Flag size={14} /> Community Architecture
                     </div>
-                    <h2 className="text-4xl font-black text-white tracking-tighter">THE TRIBE</h2>
+                    <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter">THE TRIBE</h2>
                     <p className="text-zinc-400 mt-2">Design a cult brand, define your manifesto, and build true believers.</p>
                 </div>
                 {blueprint && (
-                     <button 
+                    <button
                         onClick={handleReset}
-                        className="px-4 py-2 text-xs font-bold text-red-500 border border-red-900/30 hover:bg-red-950/30 rounded transition-colors uppercase tracking-wider flex items-center gap-2"
+                        className="px-4 py-2 text-xs font-bold text-red-500 border border-red-900/30 hover:bg-red-950/30 rounded transition-colors uppercase tracking-wider flex items-center justify-center w-full md:w-auto gap-2"
                     >
                         <Trash2 size={14} /> Reset Strategy
                     </button>
@@ -70,16 +70,16 @@ export const TheTribe: React.FC = () => {
             </div>
 
             <div className="flex-1 flex flex-col">
-                
+
                 {!blueprint ? (
                     <div className="max-w-2xl mx-auto w-full mt-8 space-y-8 animate-in slide-in-from-bottom-4 duration-500">
                         <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-xl">
                             <h3 className="text-lg font-bold text-white mb-6 border-b border-zinc-800 pb-4">Founding Principles</h3>
-                            
+
                             <div className="space-y-6">
                                 <div>
                                     <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 block">Who are your people?</label>
-                                    <input 
+                                    <input
                                         type="text"
                                         value={audience}
                                         onChange={(e) => setAudience(e.target.value)}
@@ -89,7 +89,7 @@ export const TheTribe: React.FC = () => {
                                 </div>
                                 <div>
                                     <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 block">Who is the enemy?</label>
-                                    <input 
+                                    <input
                                         type="text"
                                         value={enemy}
                                         onChange={(e) => setEnemy(e.target.value)}
@@ -99,7 +99,7 @@ export const TheTribe: React.FC = () => {
                                     <p className="text-[10px] text-zinc-500 mt-2">* Every great tribe unites against a common enemy or status quo.</p>
                                 </div>
 
-                                <button 
+                                <button
                                     onClick={handleGenerate}
                                     disabled={loading || !audience.trim() || !enemy.trim()}
                                     className="w-full py-4 bg-pink-600 hover:bg-pink-500 text-white rounded font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-pink-900/20"
@@ -111,12 +111,12 @@ export const TheTribe: React.FC = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in zoom-in-95 duration-500">
-                        
+
                         {/* Manifesto Card */}
                         <div className="bg-zinc-950 border border-pink-900/30 rounded-xl p-8 relative overflow-hidden flex flex-col">
                             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-purple-500"></div>
-                            
+
                             <div className="relative z-10 flex-1 flex flex-col">
                                 <div className="flex items-center gap-2 text-pink-500 mb-6">
                                     <Scroll size={20} />
@@ -174,7 +174,7 @@ export const TheTribe: React.FC = () => {
                                 <ul className="space-y-3">
                                     {blueprint.engagementLoops.map((loop, i) => (
                                         <li key={i} className="flex items-start gap-3 text-sm text-zinc-300">
-                                            <span className="text-pink-500 font-bold">0{i+1}</span>
+                                            <span className="text-pink-500 font-bold">0{i + 1}</span>
                                             {loop}
                                         </li>
                                     ))}

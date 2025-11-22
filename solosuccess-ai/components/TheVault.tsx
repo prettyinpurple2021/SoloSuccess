@@ -11,7 +11,7 @@ export const TheVault: React.FC = () => {
     const [activeTab, setActiveTab] = useState<VaultTab>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    
+
     // Data States
     const [reports, setReports] = useState<CompetitorReport[]>([]);
     const [sessions, setSessions] = useState<SavedWarRoomSession[]>([]);
@@ -48,7 +48,7 @@ export const TheVault: React.FC = () => {
 
     const handleDelete = (key: string, id: string, type: string) => {
         if (!confirm("Permanently delete this asset?")) return;
-        
+
         const updatedData = (data: any[]) => data.filter((item: any) => {
             if (type === 'report') return item.generatedAt !== id;
             return item.id !== id;
@@ -87,11 +87,11 @@ export const TheVault: React.FC = () => {
             const md = generateWarRoomMarkdown(item.topic, item);
             downloadMarkdown(`WarRoom_${item.id}`, md);
         } else if (type === 'deck') {
-             let content = `# ${item.title}\n\n`;
-             item.slides.forEach((s: any, i: number) => {
-                 content += `## ${i+1}. ${s.title}\n${s.keyPoint}\n\n`;
-             });
-             downloadMarkdown(`Deck_${item.title}`, content);
+            let content = `# ${item.title}\n\n`;
+            item.slides.forEach((s: any, i: number) => {
+                content += `## ${i + 1}. ${s.title}\n${s.keyPoint}\n\n`;
+            });
+            downloadMarkdown(`Deck_${item.title}`, content);
         } else if (type === 'image') {
             const a = document.createElement('a');
             a.href = item.imageBase64;
@@ -132,7 +132,7 @@ export const TheVault: React.FC = () => {
             items = [...items, ...snippets.map(c => ({ ...c, _type: 'code', _id: c.id, _title: c.title, _date: c.generatedAt }))];
         }
 
-        return items.filter(item => 
+        return items.filter(item =>
             item._title.toLowerCase().includes(searchQuery.toLowerCase())
         ).sort((a, b) => new Date(b._date).getTime() - new Date(a._date).getTime());
     };
@@ -140,7 +140,7 @@ export const TheVault: React.FC = () => {
     const filteredItems = getFilteredItems();
 
     const TypeIcon = ({ type }: { type: string }) => {
-        switch(type) {
+        switch (type) {
             case 'report': return <Eye size={16} className="text-emerald-500" />;
             case 'session': return <Swords size={16} className="text-indigo-500" />;
             case 'deck': return <Presentation size={16} className="text-purple-500" />;
@@ -153,12 +153,12 @@ export const TheVault: React.FC = () => {
     return (
         <div className="min-h-[85vh] flex flex-col animate-in fade-in duration-500">
             {/* Header */}
-            <div className="mb-6 flex items-end justify-between border-b border-zinc-800 pb-6">
+            <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between border-b border-zinc-800 pb-6 gap-4 md:gap-0">
                 <div>
                     <div className="flex items-center gap-2 text-zinc-400 font-mono text-xs font-bold uppercase tracking-widest mb-2">
                         <Archive size={14} /> Secure Storage
                     </div>
-                    <h2 className="text-4xl font-black text-white tracking-tighter">THE VAULT</h2>
+                    <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter">THE VAULT</h2>
                     <p className="text-zinc-400 mt-2">Centralized archive for intelligence, strategy, and assets.</p>
                 </div>
                 <div className="flex gap-2">
@@ -175,15 +175,15 @@ export const TheVault: React.FC = () => {
             <div className="flex flex-col md:flex-row gap-4 mb-8">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
-                    <input 
-                        type="text" 
-                        placeholder="Search archives..." 
+                    <input
+                        type="text"
+                        placeholder="Search archives..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-4 py-3 text-white focus:border-zinc-600 focus:ring-0"
                     />
                 </div>
-                <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+                <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
                     {[
                         { id: 'all', label: 'All Assets' },
                         { id: 'intel', label: 'Intelligence' },
@@ -195,11 +195,10 @@ export const TheVault: React.FC = () => {
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as VaultTab)}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all border ${
-                                activeTab === tab.id 
-                                    ? 'bg-zinc-800 border-zinc-600 text-white' 
+                            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all border ${activeTab === tab.id
+                                    ? 'bg-zinc-800 border-zinc-600 text-white'
                                     : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-700'
-                            }`}
+                                }`}
                         >
                             {tab.label}
                         </button>
@@ -218,7 +217,7 @@ export const TheVault: React.FC = () => {
                     ${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' : 'space-y-2'}
                 `}>
                     {filteredItems.map((item) => (
-                        <div 
+                        <div
                             key={item._id}
                             className={`bg-zinc-900 border border-zinc-800 rounded-lg p-4 group hover:border-zinc-600 transition-all relative overflow-hidden
                                 ${viewMode === 'list' ? 'flex items-center gap-4' : 'flex flex-col'}
@@ -242,10 +241,10 @@ export const TheVault: React.FC = () => {
                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button onClick={() => handleDownload(item, item._type)} className="p-1.5 text-zinc-400 hover:text-white bg-zinc-800 rounded"><Download size={14} /></button>
                                         <button onClick={() => handleDelete(
-                                            item._type === 'report' ? 'solo_competitor_reports' : 
-                                            item._type === 'session' ? 'solo_war_room_sessions' : 
-                                            item._type === 'deck' ? 'solo_pitch_decks' : 
-                                            item._type === 'code' ? 'solo_code_snippets' : 'solo_creative_assets',
+                                            item._type === 'report' ? 'solo_competitor_reports' :
+                                                item._type === 'session' ? 'solo_war_room_sessions' :
+                                                    item._type === 'deck' ? 'solo_pitch_decks' :
+                                                        item._type === 'code' ? 'solo_code_snippets' : 'solo_creative_assets',
                                             item._id,
                                             item._type
                                         )} className="p-1.5 text-zinc-400 hover:text-red-500 bg-zinc-800 rounded"><Trash2 size={14} /></button>
@@ -263,14 +262,14 @@ export const TheVault: React.FC = () => {
 
                             {viewMode === 'list' && (
                                 <div className="flex gap-2 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                                     <button onClick={() => handleDownload(item, item._type)} className="p-2 text-zinc-400 hover:text-white bg-zinc-800 rounded"><Download size={14} /></button>
-                                     <button onClick={() => handleDelete(
-                                            item._type === 'report' ? 'solo_competitor_reports' : 
-                                            item._type === 'session' ? 'solo_war_room_sessions' : 
-                                            item._type === 'deck' ? 'solo_pitch_decks' : 
-                                            item._type === 'code' ? 'solo_code_snippets' : 'solo_creative_assets',
-                                            item._id,
-                                            item._type
+                                    <button onClick={() => handleDownload(item, item._type)} className="p-2 text-zinc-400 hover:text-white bg-zinc-800 rounded"><Download size={14} /></button>
+                                    <button onClick={() => handleDelete(
+                                        item._type === 'report' ? 'solo_competitor_reports' :
+                                            item._type === 'session' ? 'solo_war_room_sessions' :
+                                                item._type === 'deck' ? 'solo_pitch_decks' :
+                                                    item._type === 'code' ? 'solo_code_snippets' : 'solo_creative_assets',
+                                        item._id,
+                                        item._type
                                     )} className="p-2 text-zinc-400 hover:text-red-500 bg-zinc-800 rounded"><Trash2 size={14} /></button>
                                 </div>
                             )}

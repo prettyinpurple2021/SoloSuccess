@@ -75,12 +75,12 @@ export const TheSimulator: React.FC = () => {
     return (
         <div className="min-h-[85vh] flex flex-col animate-in fade-in duration-500">
             {/* Header */}
-            <div className="mb-6 flex items-end justify-between border-b border-zinc-800 pb-6">
+            <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between border-b border-zinc-800 pb-6 gap-4 md:gap-0">
                 <div>
                     <div className="flex items-center gap-2 text-indigo-400 font-mono text-xs font-bold uppercase tracking-widest mb-2">
                         <GitBranch size={14} /> Predictive Modeling
                     </div>
-                    <h2 className="text-4xl font-black text-white tracking-tighter">THE SIMULATOR</h2>
+                    <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter">THE SIMULATOR</h2>
                     <p className="text-zinc-400 mt-2">Analyze potential futures and risk timelines.</p>
                 </div>
             </div>

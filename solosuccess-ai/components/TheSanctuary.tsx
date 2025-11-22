@@ -72,7 +72,7 @@ export const TheSanctuary: React.FC = () => {
                     <div className="space-y-8 animate-in slide-in-from-bottom-8 duration-700">
                         {/* Input Form */}
                         <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-xs font-bold text-zinc-600 uppercase tracking-widest mb-2 block">Current State</label>
                                     <select

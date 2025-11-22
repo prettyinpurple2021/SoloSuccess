@@ -143,19 +143,19 @@ export const TheNetwork: React.FC = () => {
     return (
         <div className="min-h-[85vh] flex flex-col animate-in fade-in duration-500">
             {/* Header */}
-            <div className="mb-6 flex items-end justify-between border-b border-zinc-800 pb-6">
+            <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between border-b border-zinc-800 pb-6 gap-4 md:gap-0">
                 <div>
                     <div className="flex items-center gap-2 text-blue-400 font-mono text-xs font-bold uppercase tracking-widest mb-2">
                         <Users size={14} /> Relationship Intelligence
                     </div>
-                    <h2 className="text-4xl font-black text-white tracking-tighter">THE NETWORK</h2>
+                    <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter">THE NETWORK</h2>
                     <p className="text-zinc-400 mt-2">Manage high-value assets, investors, and strategic partners.</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full md:w-auto">
                     {viewMode === 'list' && (
                         <button
                             onClick={() => setViewMode('add')}
-                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-xs uppercase tracking-widest transition-all"
+                            className="flex items-center justify-center w-full md:w-auto gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-xs uppercase tracking-widest transition-all"
                         >
                             <Plus size={16} /> Add Asset
                         </button>
@@ -163,7 +163,7 @@ export const TheNetwork: React.FC = () => {
                     {viewMode !== 'list' && (
                         <button
                             onClick={() => setViewMode('list')}
-                            className="flex items-center gap-2 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded font-bold text-xs uppercase tracking-widest transition-all"
+                            className="flex items-center justify-center w-full md:w-auto gap-2 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded font-bold text-xs uppercase tracking-widest transition-all"
                         >
                             <X size={16} /> Cancel
                         </button>
@@ -230,7 +230,7 @@ export const TheNetwork: React.FC = () => {
                 <div className="max-w-2xl mx-auto w-full bg-zinc-900 border border-zinc-800 rounded-xl p-8">
                     <h3 className="text-lg font-bold text-white mb-6 border-b border-zinc-800 pb-4">New Network Asset</h3>
                     <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Name</label>
                                 <input
@@ -250,7 +250,7 @@ export const TheNetwork: React.FC = () => {
                                 />
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Role</label>
                                 <input

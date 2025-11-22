@@ -8,7 +8,7 @@ import { soundService } from '../services/soundService';
 
 export const TheAmplifier: React.FC = () => {
     const [mode, setMode] = useState<'multiplier' | 'strategy'>('multiplier');
-    
+
     // Multiplier State
     const [source, setSource] = useState('');
     const [loading, setLoading] = useState(false);
@@ -23,7 +23,7 @@ export const TheAmplifier: React.FC = () => {
     useEffect(() => {
         const savedStrat = localStorage.getItem('solo_social_strategy');
         if (savedStrat) {
-            try { setStrategy(JSON.parse(savedStrat)); } catch (e) {}
+            try { setStrategy(JSON.parse(savedStrat)); } catch (e) { }
         }
     }, []);
 
@@ -38,7 +38,7 @@ export const TheAmplifier: React.FC = () => {
         const data = await generateAmplifiedContent(source);
         if (data) {
             setResult(data);
-            
+
             // PRODUCTION NOTE:
             // Save generated campaigns to 'marketing_assets' table/bucket.
             // Consider adding integrations to Buffer/Hootsuite/Twitter API for direct posting.
@@ -86,8 +86,8 @@ export const TheAmplifier: React.FC = () => {
 
     return (
         <div className="min-h-[85vh] flex flex-col animate-in fade-in duration-500">
-             {/* Header */}
-             <div className="mb-6 flex items-end justify-between border-b border-zinc-800 pb-6">
+            {/* Header */}
+            <div className="mb-6 flex items-end justify-between border-b border-zinc-800 pb-6">
                 <div>
                     <div className="flex items-center gap-2 text-pink-500 font-mono text-xs font-bold uppercase tracking-widest mb-2">
                         <Megaphone size={14} /> Viral Engineering
@@ -95,16 +95,16 @@ export const TheAmplifier: React.FC = () => {
                     <h2 className="text-4xl font-black text-white tracking-tighter">THE AMPLIFIER</h2>
                     <p className="text-zinc-400 mt-2">Content distribution and social media command center.</p>
                 </div>
-                
+
                 {/* Mode Switcher */}
                 <div className="bg-zinc-900 p-1 rounded-lg border border-zinc-800 flex">
-                    <button 
+                    <button
                         onClick={() => setMode('multiplier')}
                         className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition-all ${mode === 'multiplier' ? 'bg-pink-600 text-white shadow-lg' : 'text-zinc-500 hover:text-white'}`}
                     >
                         Multiplier
                     </button>
-                    <button 
+                    <button
                         onClick={() => setMode('strategy')}
                         className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition-all ${mode === 'strategy' ? 'bg-pink-600 text-white shadow-lg' : 'text-zinc-500 hover:text-white'}`}
                     >
@@ -116,20 +116,20 @@ export const TheAmplifier: React.FC = () => {
             {mode === 'multiplier' ? (
                 // === MULTIPLIER VIEW ===
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full animate-in fade-in duration-300">
-                    
+
                     {/* Input */}
                     <div className="flex flex-col gap-4">
                         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex-1 flex flex-col">
                             <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <FileText size={14} /> Source Material
                             </h3>
-                            <textarea 
+                            <textarea
                                 value={source}
                                 onChange={(e) => setSource(e.target.value)}
                                 className="flex-1 w-full bg-black border border-zinc-700 rounded p-4 text-zinc-300 focus:border-pink-500 focus:ring-0 resize-none mb-4 min-h-[300px] font-mono text-sm"
                                 placeholder="Paste your blog post, core idea, rant, or rough notes here..."
                             />
-                            <button 
+                            <button
                                 onClick={handleAmplify}
                                 disabled={loading || !source.trim()}
                                 className="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-lg font-bold uppercase tracking-widest transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-pink-900/20"
@@ -157,32 +157,32 @@ export const TheAmplifier: React.FC = () => {
 
                         {result && (
                             <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                
+
                                 <h3 className="text-white font-bold text-lg mb-6 truncate">{result.sourceTitle}</h3>
 
                                 {/* Platform Tabs */}
-                                <div className="flex gap-2 mb-6 border-b border-zinc-800 pb-4 overflow-x-auto">
-                                    <button 
+                                <div className="flex gap-2 mb-6 border-b border-zinc-800 pb-4 overflow-x-auto scrollbar-hide">
+                                    <button
                                         onClick={() => setActiveTab('twitter')}
-                                        className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${activeTab === 'twitter' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white'}`}
+                                        className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'twitter' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white'}`}
                                     >
                                         <Twitter size={14} /> Thread
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => setActiveTab('linkedin')}
-                                        className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${activeTab === 'linkedin' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white'}`}
+                                        className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'linkedin' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white'}`}
                                     >
                                         <Linkedin size={14} /> LinkedIn
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => setActiveTab('tiktok')}
-                                        className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${activeTab === 'tiktok' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white'}`}
+                                        className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'tiktok' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white'}`}
                                     >
                                         <Video size={14} /> Script
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => setActiveTab('email')}
-                                        className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${activeTab === 'email' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white'}`}
+                                        className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'email' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white'}`}
                                     >
                                         <Mail size={14} /> Email
                                     </button>
@@ -190,12 +190,12 @@ export const TheAmplifier: React.FC = () => {
 
                                 {/* Content Area */}
                                 <div className="flex-1 relative bg-black border border-zinc-800 rounded-lg p-6 overflow-y-auto custom-scrollbar">
-                                    <button 
+                                    <button
                                         onClick={() => copyContent(
                                             activeTab === 'twitter' ? result.twitterThread.join('\n\n') :
-                                            activeTab === 'linkedin' ? result.linkedinPost :
-                                            activeTab === 'tiktok' ? result.tiktokScript :
-                                            result.newsletterSection
+                                                activeTab === 'linkedin' ? result.linkedinPost :
+                                                    activeTab === 'tiktok' ? result.tiktokScript :
+                                                        result.newsletterSection
                                         )}
                                         className="absolute top-4 right-4 text-zinc-500 hover:text-white flex items-center gap-2 text-xs font-bold uppercase"
                                     >
@@ -207,7 +207,7 @@ export const TheAmplifier: React.FC = () => {
                                             {result.twitterThread.map((tweet, i) => (
                                                 <div key={i} className="flex gap-4">
                                                     <div className="flex flex-col items-center">
-                                                        <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-400">{i+1}</div>
+                                                        <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-400">{i + 1}</div>
                                                         {i < result.twitterThread.length - 1 && <div className="w-0.5 flex-1 bg-zinc-800 my-2"></div>}
                                                     </div>
                                                     <p className="text-zinc-300 text-sm leading-relaxed pt-1.5">{tweet}</p>
@@ -242,14 +242,14 @@ export const TheAmplifier: React.FC = () => {
             ) : (
                 // === STRATEGY VIEW ===
                 <div className="h-full flex flex-col animate-in fade-in duration-300">
-                    
+
                     {/* Generator Button */}
                     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center mb-8">
                         <h3 className="text-2xl font-black text-white mb-2">Social Media Roadmap</h3>
                         <p className="text-zinc-400 mb-6 max-w-lg mx-auto">
                             Generate a comprehensive strategy based on your Brand DNA, including content pillars, posting cadence, and persona-specific tactics.
                         </p>
-                        <button 
+                        <button
                             onClick={handleGenerateStrategy}
                             disabled={loadingStrategy}
                             className="px-8 py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-lg font-bold uppercase tracking-widest transition-all shadow-lg shadow-pink-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
@@ -260,7 +260,7 @@ export const TheAmplifier: React.FC = () => {
 
                     {strategy && (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in slide-in-from-bottom-8 duration-700 pb-20">
-                            
+
                             {/* Pillars */}
                             <div className="space-y-4">
                                 <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">

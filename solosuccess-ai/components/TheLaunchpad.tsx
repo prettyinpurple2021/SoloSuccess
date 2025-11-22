@@ -154,12 +154,12 @@ export const TheLaunchpad: React.FC = () => {
                     <div className="animate-in zoom-in-95 duration-500 flex flex-col h-full">
 
                         {/* Timeline View */}
-                        <div className="flex-1 relative pl-8 pb-20 border-l border-zinc-800 ml-4 md:ml-10">
+                        <div className="flex-1 relative pl-4 md:pl-8 pb-20 border-l border-zinc-800 ml-2 md:ml-10">
 
                             {strategy.phases.map((phase, pIdx) => (
                                 <div key={pIdx} className="mb-12 relative">
                                     {/* Phase Marker */}
-                                    <div className="absolute -left-12 top-0 flex items-center justify-center w-8 h-8 rounded-full bg-zinc-900 border border-zinc-700 z-10">
+                                    <div className="absolute -left-8 md:-left-12 top-0 flex items-center justify-center w-8 h-8 rounded-full bg-zinc-900 border border-zinc-700 z-10">
                                         <div className={`w-3 h-3 rounded-full ${pIdx === 1 ? 'bg-orange-500 animate-pulse' : 'bg-zinc-500'}`}></div>
                                     </div>
 
@@ -195,7 +195,7 @@ export const TheLaunchpad: React.FC = () => {
                         </div>
 
                         {/* Sticky Footer Action */}
-                        <div className="sticky bottom-0 bg-black/80 backdrop-blur border-t border-zinc-800 p-6 flex justify-between items-center z-20">
+                        <div className="sticky bottom-0 bg-black/80 backdrop-blur border-t border-zinc-800 p-4 md:p-6 flex flex-col md:flex-row justify-between items-center z-20 gap-4 md:gap-0">
                             <div>
                                 <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Target: {strategy.productName}</p>
                                 <p className="text-sm text-white font-mono">Launch Date: {new Date(strategy.launchDate).toLocaleDateString()}</p>
@@ -203,7 +203,7 @@ export const TheLaunchpad: React.FC = () => {
                             <button
                                 onClick={handleDeploy}
                                 disabled={deployed}
-                                className={`flex items-center gap-3 px-8 py-4 rounded font-bold text-sm uppercase tracking-widest transition-all shadow-xl
+                                className={`flex items-center justify-center w-full md:w-auto gap-3 px-8 py-4 rounded font-bold text-sm uppercase tracking-widest transition-all shadow-xl
                                     ${deployed
                                         ? 'bg-emerald-600 text-white cursor-default'
                                         : 'bg-orange-600 hover:bg-orange-500 text-white hover:scale-105'

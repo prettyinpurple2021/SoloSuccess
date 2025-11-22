@@ -201,7 +201,7 @@ export const WarRoom: React.FC = () => {
         <div className="h-[85vh] flex flex-col relative">
 
             {/* Header */}
-            <div className="mb-6 flex justify-between items-end">
+            <div className="mb-6 flex flex-col md:flex-row justify-between md:items-end gap-4 md:gap-0">
                 <div className="flex items-center gap-3 mb-2">
                     <div className="p-2 bg-indigo-500/20 rounded-lg">
                         <Swords className="text-indigo-400" size={24} />
@@ -213,7 +213,7 @@ export const WarRoom: React.FC = () => {
                 </div>
                 <button
                     onClick={() => setShowHistory(!showHistory)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded text-xs font-bold uppercase tracking-wider transition-all border ${showHistory ? 'bg-zinc-800 border-zinc-600 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:text-white'}`}
+                    className={`flex items-center justify-center w-full md:w-auto gap-2 px-3 py-2 rounded text-xs font-bold uppercase tracking-wider transition-all border ${showHistory ? 'bg-zinc-800 border-zinc-600 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:text-white'}`}
                 >
                     <History size={14} /> {showHistory ? 'Close Archives' : 'Strategy Archives'}
                 </button>
@@ -317,7 +317,7 @@ export const WarRoom: React.FC = () => {
                                 <div className="bg-zinc-900/80 backdrop-blur-md border border-indigo-500/50 rounded-xl p-1 overflow-hidden relative shadow-2xl">
                                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 pointer-events-none"></div>
 
-                                    <div className="bg-black/40 p-8 rounded-lg">
+                                    <div className="bg-black/40 p-4 md:p-8 rounded-lg">
                                         <div className="flex items-center gap-3 mb-6 border-b border-zinc-800 pb-4">
                                             <div className="bg-indigo-500 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                                                 <CheckCircle2 size={14} /> Final Consensus
@@ -398,7 +398,7 @@ export const WarRoom: React.FC = () => {
                 </div>
 
                 {/* History Drawer */}
-                <div className={`absolute inset-y-0 right-0 w-80 bg-zinc-950 border-l border-zinc-800 transform transition-transform duration-300 ease-in-out z-30 ${showHistory ? 'translate-x-0' : 'translate-x-full'}`}>
+                <div className={`absolute inset-y-0 right-0 w-full md:w-80 bg-zinc-950 border-l border-zinc-800 transform transition-transform duration-300 ease-in-out z-30 ${showHistory ? 'translate-x-0' : 'translate-x-full'}`}>
                     <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
                         <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <Archive size={14} /> Strategy Archives

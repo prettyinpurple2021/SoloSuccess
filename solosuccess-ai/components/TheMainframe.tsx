@@ -55,7 +55,7 @@ export const TheMainframe: React.FC = () => {
 
     const handleSaveToVault = () => {
         if (!codeResult || saved) return;
-        
+
         const newSnippet: SavedCodeSnippet = {
             ...codeResult,
             id: `code-${Date.now()}`,
@@ -68,7 +68,7 @@ export const TheMainframe: React.FC = () => {
         const savedRaw = localStorage.getItem('solo_code_snippets');
         const savedSnippets: SavedCodeSnippet[] = savedRaw ? JSON.parse(savedRaw) : [];
         localStorage.setItem('solo_code_snippets', JSON.stringify([newSnippet, ...savedSnippets]));
-        
+
         setSaved(true);
         showToast("SNIPPET ARCHIVED", "Code saved to The Vault.", "success");
         soundService.playSuccess();
@@ -77,7 +77,7 @@ export const TheMainframe: React.FC = () => {
     return (
         <div className="min-h-[85vh] flex flex-col animate-in fade-in duration-500">
             {/* Header */}
-             <div className="mb-6 flex items-end justify-between border-b border-zinc-800 pb-6">
+            <div className="mb-6 flex items-end justify-between border-b border-zinc-800 pb-6">
                 <div>
                     <div className="flex items-center gap-2 text-yellow-500 font-mono text-xs font-bold uppercase tracking-widest mb-2">
                         <Terminal size={14} /> Technical Ops
@@ -88,23 +88,23 @@ export const TheMainframe: React.FC = () => {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-4 mb-8 border-b border-zinc-800">
-                <button 
+            <div className="flex gap-4 mb-8 border-b border-zinc-800 overflow-x-auto pb-1 scrollbar-hide">
+                <button
                     onClick={() => setActiveTab('audit')}
-                    className={`pb-4 px-4 text-sm font-bold uppercase tracking-wider transition-all border-b-2 ${activeTab === 'audit' ? 'border-yellow-500 text-yellow-500' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                    className={`pb-4 px-4 text-sm font-bold uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${activeTab === 'audit' ? 'border-yellow-500 text-yellow-500' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
                 >
                     <span className="flex items-center gap-2"><Bug size={16} /> Stack Audit</span>
                 </button>
-                <button 
+                <button
                     onClick={() => setActiveTab('fabricator')}
-                     className={`pb-4 px-4 text-sm font-bold uppercase tracking-wider transition-all border-b-2 ${activeTab === 'fabricator' ? 'border-yellow-500 text-yellow-500' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                    className={`pb-4 px-4 text-sm font-bold uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${activeTab === 'fabricator' ? 'border-yellow-500 text-yellow-500' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
                 >
                     <span className="flex items-center gap-2"><Code size={16} /> Code Fabricator</span>
                 </button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
-                
+
                 {/* Input Panel */}
                 <div className="flex flex-col gap-4">
                     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex-1 flex flex-col">
@@ -113,7 +113,7 @@ export const TheMainframe: React.FC = () => {
                         </h3>
                         <div className="flex-1 bg-black border border-zinc-800 rounded-lg p-4 font-mono text-sm text-yellow-500 relative group">
                             <div className="absolute top-4 left-4 opacity-50 select-none">{">"}</div>
-                            <textarea 
+                            <textarea
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 className="w-full h-full bg-transparent border-none resize-none focus:ring-0 pl-6 custom-scrollbar"
@@ -122,7 +122,7 @@ export const TheMainframe: React.FC = () => {
                             />
                         </div>
                         <div className="mt-4 flex justify-end">
-                            <button 
+                            <button
                                 onClick={handleExecute}
                                 disabled={loading || !input.trim()}
                                 className="px-8 py-3 bg-yellow-600 hover:bg-yellow-500 text-black font-bold uppercase tracking-widest rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-yellow-900/20"
@@ -136,7 +136,7 @@ export const TheMainframe: React.FC = () => {
                 {/* Output Panel */}
                 <div className="bg-zinc-950 border border-zinc-900 rounded-xl p-6 relative overflow-hidden flex flex-col min-h-[400px]">
                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>
-                    
+
                     {!auditResult && !codeResult && !loading && (
                         <div className="flex-1 flex flex-col items-center justify-center text-zinc-700 opacity-50">
                             <Terminal size={64} strokeWidth={1} />
@@ -145,7 +145,7 @@ export const TheMainframe: React.FC = () => {
                     )}
 
                     {loading && (
-                         <div className="flex-1 flex flex-col items-center justify-center text-yellow-500">
+                        <div className="flex-1 flex flex-col items-center justify-center text-yellow-500">
                             <div className="w-16 h-16 border-4 border-yellow-900/30 rounded border-t-yellow-500 animate-spin mb-4"></div>
                             <p className="font-mono uppercase tracking-widest animate-pulse">Processing Logic...</p>
                         </div>
@@ -203,7 +203,7 @@ export const TheMainframe: React.FC = () => {
                                     {codeResult.language}
                                 </span>
                                 <div className="flex gap-2">
-                                    <button 
+                                    <button
                                         onClick={handleSaveToVault}
                                         disabled={saved}
                                         className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded transition-colors ${saved ? 'text-emerald-500 bg-emerald-900/20' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
@@ -211,7 +211,7 @@ export const TheMainframe: React.FC = () => {
                                         {saved ? <Check size={14} /> : <Save size={14} />}
                                         {saved ? 'SAVED' : 'SAVE TO VAULT'}
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={handleCopy}
                                         className="flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-white px-3 py-1.5 hover:bg-zinc-800 rounded transition-colors"
                                     >
@@ -220,7 +220,7 @@ export const TheMainframe: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
-                            
+
                             <div className="flex-1 bg-black border border-zinc-800 rounded-lg overflow-hidden relative group">
                                 <pre className="p-4 text-sm font-mono text-emerald-400 h-full overflow-auto custom-scrollbar">
                                     <code>{codeResult.code}</code>
