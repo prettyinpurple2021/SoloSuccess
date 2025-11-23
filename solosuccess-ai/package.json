@@ -14,13 +14,16 @@
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
+    "@stackframe/stack": "^2.8.52",
+    "@upstash/redis": "^1.35.6",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
     "lucide-react": "^0.554.0",
     "pg": "^8.16.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "recharts": "^3.4.1"
+    "recharts": "^3.4.1",
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

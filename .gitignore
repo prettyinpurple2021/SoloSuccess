@@ -1,0 +1,11 @@
+# SoloSuccess AI - Root .gitignore
+
+# Node modules
+node_modules/
+package-lock.json
+
+# System files  
+.DS_Store
+
+# The actual project is in the solosuccess-ai/ subdirectory
+# That subdirectory has its own .gitignore

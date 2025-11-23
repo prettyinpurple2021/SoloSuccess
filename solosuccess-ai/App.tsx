@@ -34,9 +34,11 @@ import { TheTribe } from './components/TheTribe';
 import { TheAmplifier } from './components/TheAmplifier';
 import { TheLaunchpad } from './components/TheLaunchpad';
 import { TheScout } from './components/TheScout';
+import { AuthGate } from './components/AuthGate';
 import { AgentId, Task } from './types';
-import { Menu, NotebookPen } from 'lucide-react';
+import { Menu, NotebookPen } from 'lucide-react'
 import { useSwipe } from './hooks/useSwipe';
+
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
