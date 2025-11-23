@@ -62,7 +62,7 @@ const set = <T>(key: string, value: T): void => {
     }
 };
 
-// API helper with fallback
+// API helper with fallback and authentication
 async function apiCall<T>(
     method: string,
     endpoint: string,
@@ -83,9 +83,16 @@ async function apiCall<T>(
     }
 
     try {
+        // Get Stack Auth user ID
+        const stackApp = (window as any).stackApp;
+        const userId = stackApp?.user?.id || '';
+
         const options: RequestInit = {
             method,
-            headers: { 'Content-Type': 'application/json' }
+            headers: {
+                'Content-Type': 'application/json',
+                'x-stack-user-id': userId, // Pass user ID to backend
+            }
         };
 
         if (body !== undefined) {

@@ -1,27 +1,31 @@
-import { StackProvider, StackTheme } from "@stackframe/stack";
-import { ReactNode } from "react";
+import { StackProvider, StackClientApp, useStackApp } from "@stackframe/stack";
+import { ReactNode, useEffect } from "react";
 
-const stackTheme: StackTheme = {
-    colors: {
-        // Match your app's glassmorphism/dark theme
-        primaryBackground: "rgba(30, 30, 30, 0.95)",
-        secondaryBackground: "rgba(40, 40, 40, 0.9)",
-        primaryText: "#ffffff",
-        secondaryText: "#a0aec0",
-        primaryBorder: "rgba(255, 255, 255, 0.1)",
-        accent: "#805ad5", // Purple accent to match your theme
-        error: "#fc8181",
-    },
-};
+// Initialize Stack Client App
+const stackClientApp = new StackClientApp({
+    projectId: (import.meta as any).env?.VITE_STACK_PROJECT_ID || "",
+    publishableClientKey: (import.meta as any).env?.VITE_STACK_PUBLISHABLE_CLIENT_KEY || "",
+});
+
+function StackAppExposer({ children }: { children: ReactNode }) {
+    const app = useStackApp();
+
+    useEffect(() => {
+        // Expose Stack App globally for storageService to access user ID
+        (window as any).stackApp = app;
+    }, [app]);
+
+    return <>{children}</>;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     return (
-        <StackProvider
-            projectId={(import.meta as any).env?.VITE_STACK_PROJECT_ID || ""}
-            publishableClientKey={(import.meta as any).env?.VITE_STACK_PUBLISHABLE_CLIENT_KEY || ""}
-            theme={stackTheme}
-        >
-            {children}
+        <StackProvider app={stackClientApp}>
+            <StackAppExposer>
+                {children}
+            </StackAppExposer>
         </StackProvider>
     );
 }
+
+export { stackClientApp };

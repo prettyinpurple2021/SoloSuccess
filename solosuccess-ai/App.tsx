@@ -122,8 +122,13 @@ function App() {
 
   if (checkingBoot) return null;
 
+  // Boot flow happens AFTER authentication
   if (!isBooted) {
-    return <SystemBoot onComplete={handleBootComplete} />;
+    return (
+      <AuthGate>
+        <SystemBoot onComplete={handleBootComplete} />
+      </AuthGate>
+    );
   }
 
   const renderView = () => {

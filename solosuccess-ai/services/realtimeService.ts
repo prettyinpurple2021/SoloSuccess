@@ -1,0 +1,122 @@
+// Real-Time Service using Socket.IO
+// Handles WebSocket connections for live updates
+
+import { io, Socket } from 'socket.io-client';
+
+type UpdateCallback = (data: any) => void;
+
+class RealtimeService {
+    private socket: Socket | null = null;
+    private listeners: Map<string, Set<UpdateCallback>> = new Map();
+    private userId: string | null = null;
+
+    connect(userId: string) {
+        if (this.socket?.connected && this.userId === userId) {
+            console.log('Already connected to real-time service');
+            return;
+        }
+
+        this.userId = userId;
+        const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
+
+        this.socket = io(API_URL, {
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionAttempts: 5
+        });
+
+        // Join user-specific room
+        this.socket.on('connect', () => {
+            console.log('✅ Connected to real-time server');
+            this.socket?.emit('join', userId);
+        });
+
+        // Handle real-time events
+        this.socket.on('task:updated', (data) => {
+            console.log('Real-time: Task updated', data);
+            this.emit('task:updated', data);
+        });
+
+        this.socket.on('task:deleted', (data) => {
+            console.log('Real-time: Task deleted', data);
+            this.emit('task:deleted', data);
+        });
+
+        this.socket.on('tasks:batch_updated', (data) => {
+            console.log('Real-time: Tasks batch updated');
+            this.emit('tasks:batch_updated', data);
+        });
+
+        this.socket.on('tasks:cleared', () => {
+            console.log('Real-time: All tasks cleared');
+            this.emit('tasks:cleared', {});
+        });
+
+        this.socket.on('chat:updated', (data) => {
+            console.log('Real-time: Chat updated', data);
+            this.emit('chat:updated', data);
+        });
+
+        this.socket.on('context:updated', (data) => {
+            console.log('Real-time: Context updated');
+            this.emit('context:updated', data);
+        });
+
+        this.socket.on('report:created', (data) => {
+            console.log('Real-time: Report created');
+            this.emit('report:created', data);
+        });
+
+        this.socket.on('disconnect', () => {
+            console.log('⚠️ Disconnected from real-time server');
+        });
+
+        this.socket.on('reconnect', (attemptNumber) => {
+            console.log(`✅ Reconnected after ${attemptNumber} attempts`);
+        });
+
+        this.socket.on('connect_error', (error) => {
+            console.error('Real-time connection error:', error.message);
+        });
+    }
+
+    disconnect() {
+        if (this.socket) {
+            this.socket.disconnect();
+            this.socket = null;
+            this.listeners.clear();
+            console.log('Disconnected from real-time service');
+        }
+    }
+
+    // Subscribe to events
+    on(event: string, callback: UpdateCallback) {
+        if (!this.listeners.has(event)) {
+            this.listeners.set(event, new Set());
+        }
+        this.listeners.get(event)!.add(callback);
+    }
+
+    // Unsubscribe from events
+    off(event: string, callback: UpdateCallback) {
+        const listeners = this.listeners.get(event);
+        if (listeners) {
+            listeners.delete(callback);
+        }
+    }
+
+    // Emit to local listeners
+    private emit(event: string, data: any) {
+        const listeners = this.listeners.get(event);
+        if (listeners) {
+            listeners.forEach(callback => callback(data));
+        }
+    }
+
+    isConnected(): boolean {
+        return this.socket?.connected || false;
+    }
+}
+
+export const realtimeService = new RealtimeService();

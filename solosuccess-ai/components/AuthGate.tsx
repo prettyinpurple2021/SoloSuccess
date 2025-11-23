@@ -1,6 +1,7 @@
 import { useStackApp, useUser } from "@stackframe/stack";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { realtimeService } from "../services/realtimeService";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
     const app = useStackApp();
@@ -10,6 +11,16 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         // If no user is signed in, redirect to sign in page
         if (user === null) {
             app.redirectToSignIn();
+        }
+
+        // If user is authenticated, connect to real-time service
+        if (user) {
+            realtimeService.connect(user.id);
+
+            // Cleanup on unmount
+            return () => {
+                realtimeService.disconnect();
+            };
         }
     }, [user, app]);
 
