@@ -1,23 +1,17 @@
 
-// PRODUCTION NOTE:
-// This service performs client-side Markdown generation and file downloading (Blob/URL).
-// For a professional SaaS application, specifically for PDF reports (Intel Briefs, Contracts, Pitch Decks),
-// it is highly recommended to use a Server-Side solution (e.g., Node.js with Puppeteer or Playwright, or an API like DocRaptor).
-// Server-side generation ensures consistent rendering across all devices/browsers and allows for branded headers/footers.
-
 import { CompetitorReport, WarRoomResponse } from "../types";
 import { AGENTS } from "../constants";
 
 export const downloadMarkdown = (filename: string, content: string) => {
-  const blob = new Blob([content], { type: 'text/markdown' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${filename.replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.md`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename.replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 };
 
 export const generateCompetitorMarkdown = (report: CompetitorReport): string => {

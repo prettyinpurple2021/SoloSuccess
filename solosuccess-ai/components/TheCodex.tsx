@@ -38,8 +38,6 @@ export const TheCodex: React.FC = () => {
     }, []);
 
     const handleSave = async () => {
-        // PRODUCTION NOTE: Brand DNA persisted to localStorage.
-        // In production: await db.update(userSettings).set({ brandDna: dna });
         localStorage.setItem('solo_brand_dna', JSON.stringify(dna));
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);

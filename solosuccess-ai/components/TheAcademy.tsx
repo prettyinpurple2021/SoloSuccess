@@ -91,8 +91,6 @@ export const TheAcademy: React.FC = () => {
         const result = await evaluateRoleplaySession(activeScenario, history);
         if (result) {
             setFeedback(result);
-
-            // PRODUCTION NOTE: Saving to storageService
             await storageService.saveTrainingResult(result);
 
             const { leveledUp } = await addXP(result.score); // XP based on performance

@@ -13,8 +13,7 @@ export const TheDeck: React.FC = () => {
     const [loading, setLoading] = useState(false);
 
     const saveToVault = async (newDeck: PitchDeck) => {
-        // PRODUCTION NOTE: Persistence via storageService.
-        // Ensure ID exists (for older items)
+
         const deckWithId = { ...newDeck, id: newDeck.id || `deck-${Date.now()}` };
         await storageService.savePitchDeck(deckWithId);
     };

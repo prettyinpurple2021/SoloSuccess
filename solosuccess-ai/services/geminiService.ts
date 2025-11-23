@@ -17,7 +17,7 @@ if (USE_BACKEND_PROXY) {
 }
 
 const getContext = async (): Promise<string> => {
-    // PRODUCTION NOTE: Now using storageService (which could be backend-backed).
+
     const ctx = await storageService.getContext();
     const dna = await storageService.getBrandDNA();
 
@@ -55,7 +55,6 @@ const getContext = async (): Promise<string> => {
 };
 
 const getDeepMindContext = async (): Promise<string> => {
-    // PRODUCTION NOTE: Aggregating data via storageService.
 
     // 1. Tasks (Tactical Roadmap)
     const tasks = await storageService.getTasks();

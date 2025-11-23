@@ -27,8 +27,6 @@ export const Settings: React.FC = () => {
     }, []);
 
     const handleSave = async () => {
-        // PRODUCTION NOTE: User settings saved via storageService.
-        // Replace with user profile update via API/Server Action.
         await storageService.saveContext(context);
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);

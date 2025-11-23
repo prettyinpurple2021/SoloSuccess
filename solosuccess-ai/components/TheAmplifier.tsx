@@ -5,6 +5,7 @@ import { generateAmplifiedContent, generateSocialStrategy } from '../services/ge
 import { ContentAmplification, SocialStrategy } from '../types';
 import { addXP, showToast } from '../services/gameService';
 import { soundService } from '../services/soundService';
+import { storageService } from '../services/storageService';
 
 export const TheAmplifier: React.FC = () => {
     const [mode, setMode] = useState<'multiplier' | 'strategy'>('multiplier');
@@ -39,9 +40,8 @@ export const TheAmplifier: React.FC = () => {
         if (data) {
             setResult(data);
 
-            // PRODUCTION NOTE:
-            // Save generated campaigns to 'marketing_assets' table/bucket.
-            // Consider adding integrations to Buffer/Hootsuite/Twitter API for direct posting.
+            // Save to Vault
+            await storageService.saveCampaign(data);
 
             const { leveledUp } = await addXP(50);
             showToast("CONTENT AMPLIFIED", "Omni-channel assets generated.", "xp", 50);

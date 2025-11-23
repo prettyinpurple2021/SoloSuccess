@@ -31,7 +31,7 @@ export const getRankTitle = (level: number) => {
 };
 
 export const getUserProgress = async (): Promise<UserProgress> => {
-    // PRODUCTION NOTE: Now using abstracted StorageService
+
     const data = await storageService.getUserProgress();
 
     // Recalculate derived values just in case (though storage usually has raw data)
@@ -67,7 +67,7 @@ export const addXP = async (amount: number): Promise<{ progress: UserProgress, l
         nextLevelXP: getXPForLevel(newLevel + 1)
     };
 
-    // PRODUCTION NOTE: Update progress in database via service.
+
     await storageService.saveUserProgress(newData);
 
     return {

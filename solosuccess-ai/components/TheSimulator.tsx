@@ -5,6 +5,7 @@ import { runSimulation } from '../services/geminiService';
 import { SimulationResult, ScenarioOutcome } from '../types';
 import { addXP, showToast } from '../services/gameService';
 import { soundService } from '../services/soundService';
+import { storageService } from '../services/storageService';
 
 export const TheSimulator: React.FC = () => {
     const [scenario, setScenario] = useState('');
@@ -21,9 +22,8 @@ export const TheSimulator: React.FC = () => {
         if (sim) {
             setResult(sim);
 
-            // PRODUCTION NOTE:
-            // Simulations are ephemeral here. In production, save `sim` to a 'simulations' table 
-            // so the user can revisit past risk assessments.
+            // Save to Vault
+            await storageService.saveSimulation(sim);
 
             const { leveledUp } = await addXP(80);
             showToast("SIMULATION COMPLETE", "Timeline branches projected.", "xp", 80);

@@ -19,10 +19,6 @@ export const ThePivot: React.FC = () => {
         if (result) {
             setAnalysis(result);
 
-            // PRODUCTION NOTE: 
-            // Market gap analysis should be saved to the user's profile 
-            // or a 'Strategies' table so they can reference it later.
-
             const { leveledUp } = await addXP(100);
             showToast("OCEAN MAPPED", "Market gaps identified.", "xp", 100);
             if (leveledUp) showToast("RANK UP!", "New founder level reached.", "success");

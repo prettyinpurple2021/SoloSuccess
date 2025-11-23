@@ -6,7 +6,7 @@ import {
     PitchDeck, CreativeAsset, Contact, LaunchStrategy, TribeBlueprint,
     SOP, JobDescription, InterviewGuide, ProductSpec, PivotAnalysis,
     BoardMeetingReport, SavedCodeSnippet, SavedWarRoomSession, LegalDocType,
-    RoleplayFeedback
+    RoleplayFeedback, ContentAmplification, SimulationResult
 } from '../types';
 
 // Configuration
@@ -371,6 +371,11 @@ export const storageService = {
         set(KEYS.PRODUCT_SPECS, items);
     },
 
+    async saveProductSpecs(specs: ProductSpec[]): Promise<void> {
+        await delay();
+        set(KEYS.PRODUCT_SPECS, specs);
+    },
+
     // --- Pivot Analyses ---
     async getPivotAnalyses(): Promise<PivotAnalysis[]> {
         await delay();
@@ -480,6 +485,32 @@ export const storageService = {
                 localStorage.setItem(key, data[key]);
             }
         });
+    },
+
+    // --- Campaigns (The Amplifier) ---
+    async getCampaigns(): Promise<ContentAmplification[]> {
+        await delay();
+        return get<ContentAmplification[]>('solo_campaigns', []);
+    },
+
+    async saveCampaign(campaign: ContentAmplification): Promise<void> {
+        const items = await this.getCampaigns();
+        items.unshift(campaign);
+        await delay();
+        set('solo_campaigns', items);
+    },
+
+    // --- Simulations (The Simulator) ---
+    async getSimulations(): Promise<SimulationResult[]> {
+        await delay();
+        return get<SimulationResult[]>('solo_simulations', []);
+    },
+
+    async saveSimulation(simulation: SimulationResult): Promise<void> {
+        const items = await this.getSimulations();
+        items.unshift(simulation);
+        await delay();
+        set('solo_simulations', items);
     }
 };
 

@@ -5,6 +5,7 @@ import { LaunchStrategy, Task, AgentId } from '../types';
 import { addXP, showToast } from '../services/gameService';
 import { soundService } from '../services/soundService';
 import { AGENTS } from '../constants';
+import { storageService } from '../services/storageService';
 
 export const TheLaunchpad: React.FC = () => {
     const [productName, setProductName] = useState('');
@@ -14,10 +15,13 @@ export const TheLaunchpad: React.FC = () => {
     const [deployed, setDeployed] = useState(false);
 
     useEffect(() => {
-        const saved = localStorage.getItem('solo_launch_strategy');
-        if (saved) {
-            try { setStrategy(JSON.parse(saved)); } catch (e) { }
-        }
+        const loadStrategy = async () => {
+            const strategies = await storageService.getLaunchStrategies();
+            if (strategies.length > 0) {
+                setStrategy(strategies[0]);
+            }
+        };
+        loadStrategy();
     }, []);
 
     const handleGenerate = async () => {
@@ -29,9 +33,8 @@ export const TheLaunchpad: React.FC = () => {
         const result = await generateLaunchStrategy(productName, launchDate);
         if (result) {
             setStrategy(result);
-            // PRODUCTION NOTE: Saving strategy to localStorage.
-            // In production: await db.insert(launches).values(result);
-            localStorage.setItem('solo_launch_strategy', JSON.stringify(result));
+            // Save to Vault
+            await storageService.saveLaunchStrategy(result);
 
             const { leveledUp } = await addXP(100);
             showToast("FLIGHT PLAN LOGGED", "Launch sequence initiated.", "xp", 100);
@@ -46,8 +49,7 @@ export const TheLaunchpad: React.FC = () => {
 
     const handleDeploy = async () => {
         if (!strategy) return;
-        const currentTasksRaw = localStorage.getItem('solo_tactical_tasks');
-        const currentTasks: Task[] = currentTasksRaw ? JSON.parse(currentTasksRaw) : [];
+        const currentTasks = await storageService.getTasks();
 
         const newTasks: Task[] = [];
         strategy.phases.forEach((phase, pIdx) => {
@@ -66,7 +68,7 @@ export const TheLaunchpad: React.FC = () => {
         });
 
         const updatedTasks = [...currentTasks, ...newTasks];
-        localStorage.setItem('solo_tactical_tasks', JSON.stringify(updatedTasks));
+        await storageService.saveTasks(updatedTasks);
         setDeployed(true);
 
         const { leveledUp } = await addXP(75);
@@ -79,7 +81,7 @@ export const TheLaunchpad: React.FC = () => {
         if (confirm("Abort mission and clear flight plan?")) {
             setStrategy(null);
             setDeployed(false);
-            localStorage.removeItem('solo_launch_strategy');
+            // Note: We don't delete from history, just clear current view
             soundService.playError();
         }
     };

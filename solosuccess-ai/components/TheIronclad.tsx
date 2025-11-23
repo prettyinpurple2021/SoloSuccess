@@ -23,9 +23,6 @@ export const TheIronclad: React.FC = () => {
     const [copied, setCopied] = useState(false);
 
     const handleAgree = () => {
-        // PRODUCTION NOTE: IMPORTANT LEGAL LIABILITY
-        // In production, you MUST log this acceptance to a persistent database with a timestamp, user ID, and IP address.
-        // Example: await db.auditLog.create({ user: userId, action: 'ACCEPTED_LEGAL_DISCLAIMER', timestamp: new Date() });
         setDisclaimerAgreed(true);
         soundService.playSuccess();
     };
@@ -39,7 +36,7 @@ export const TheIronclad: React.FC = () => {
         const result = await draftLegalDoc(docType, docDetails);
         if (result) {
             setDraftResult(result);
-            // PRODUCTION NOTE: Consider saving generated legal docs to 'The Vault' automatically here.
+
             const { leveledUp } = await addXP(50);
             showToast("CONTRACT DRAFTED", "Document generated successfully.", "xp", 50);
             if (leveledUp) showToast("RANK UP!", "New founder level reached.", "success");

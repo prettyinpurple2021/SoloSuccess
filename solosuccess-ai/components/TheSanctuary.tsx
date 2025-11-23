@@ -14,11 +14,6 @@ export const TheSanctuary: React.FC = () => {
     const [coaching, setCoaching] = useState<MentalCoaching | null>(null);
     const [breathing, setBreathing] = useState(false);
 
-    // PRODUCTION NOTE: 
-    // This component handles sensitive user mental state data.
-    // In production, ensure this data is encrypted at rest (E2EE) 
-    // and clearly communicated to the user how it is used/stored.
-
     const handleReflect = async () => {
         if (!blocker.trim()) return;
         setLoading(true);

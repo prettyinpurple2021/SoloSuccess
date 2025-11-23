@@ -6,6 +6,7 @@ import { WarRoomEntry, WarRoomResponse, AgentId, Task, SavedWarRoomSession } fro
 import { addXP, showToast } from '../services/gameService';
 import { downloadMarkdown, generateWarRoomMarkdown } from '../services/exportService';
 import { soundService } from '../services/soundService';
+import { storageService } from '../services/storageService';
 
 export const WarRoom: React.FC = () => {
     const [topic, setTopic] = useState('');
@@ -30,14 +31,11 @@ export const WarRoom: React.FC = () => {
 
     // Load History & Check for Bridges
     useEffect(() => {
-        const savedSessions = localStorage.getItem('solo_war_room_sessions');
-        if (savedSessions) {
-            try {
-                setSessions(JSON.parse(savedSessions));
-            } catch (e) {
-                console.error("Failed to load war room sessions", e);
-            }
-        }
+        const loadSessions = async () => {
+            const saved = await storageService.getWarRoomSessions();
+            setSessions(saved);
+        };
+        loadSessions();
 
         const draft = localStorage.getItem('solo_war_room_topic');
         if (draft) {
@@ -117,9 +115,8 @@ export const WarRoom: React.FC = () => {
 
         const updatedSessions = [newSession, ...sessions];
         setSessions(updatedSessions);
-        // PRODUCTION NOTE: Persistence via localStorage.
-        // In production: await db.insert(warRoomSessions).values(newSession);
-        localStorage.setItem('solo_war_room_sessions', JSON.stringify(updatedSessions));
+        // Save to Vault
+        storageService.saveWarRoomSession(newSession);
         setJustSaved(true);
         setTimeout(() => setJustSaved(false), 3000);
         showToast("ARCHIVED", "War Room session saved.", "success");
@@ -156,9 +153,7 @@ export const WarRoom: React.FC = () => {
 
     const handleDeployToRoadmap = async () => {
         if (!fullResponse) return;
-
-        const currentTasksRaw = localStorage.getItem('solo_tactical_tasks');
-        const currentTasks: Task[] = currentTasksRaw ? JSON.parse(currentTasksRaw) : [];
+        const currentTasks = await storageService.getTasks();
 
         const newTasks: Task[] = fullResponse.actionPlan.map((action, i) => ({
             id: `task-war-${Date.now()}-${i}`,
@@ -172,7 +167,7 @@ export const WarRoom: React.FC = () => {
         }));
 
         const updatedTasks = [...currentTasks, ...newTasks];
-        localStorage.setItem('solo_tactical_tasks', JSON.stringify(updatedTasks));
+        await storageService.saveTasks(updatedTasks);
         setDeployed(true);
 
         const { leveledUp } = await addXP(50);

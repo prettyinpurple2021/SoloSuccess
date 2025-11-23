@@ -44,11 +44,6 @@ export const AGENTS: Record<AgentId, Agent> = {
   },
 };
 
-// PRODUCTION NOTE:
-// These system instructions are currently hardcoded.
-// In a production environment, "Prompt Engineering" is an ongoing process.
-// These strings should be moved to a database or a CMS (Content Management System).
-// This allows you to tweak the personas, rules, and output formats without requiring a code deployment.
 export const SYSTEM_INSTRUCTIONS: Record<AgentId, string> = {
   [AgentId.ROXY]: "You are Roxy, a high-efficiency COO for a solo founder. You are concise, actionable, and focused on operations, project management, and execution. You speak in short, punchy sentences. Your goal is to unblock the user.",
   [AgentId.ECHO]: "You are Echo, a viral marketing genius and CMO. You use emojis, speak with high energy, and focus on growth hacks, branding, and public perception. You are encouraging but push for bolder ideas.",

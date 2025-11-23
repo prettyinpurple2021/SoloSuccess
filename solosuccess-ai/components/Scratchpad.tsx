@@ -25,9 +25,6 @@ export const Scratchpad: React.FC<ScratchpadProps> = ({ isOpen, onClose, activeA
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const newVal = e.target.value;
         setContent(newVal);
-        // PRODUCTION NOTE: Currently uses localStorage. 
-        // For a 'Mission Control' experience across devices, sync this content debounced 
-        // to a realtime database (e.g., Firebase/Supabase) or user profile table.
         localStorage.setItem('solo_scratchpad', newVal);
     };
 

@@ -49,8 +49,6 @@ export const SystemBoot: React.FC<SystemBootProps> = ({ onComplete }) => {
         else if (activeField === 'companyName') setActiveField('industry');
         else if (activeField === 'industry') setActiveField('description');
         else {
-            // PRODUCTION NOTE: Persist user profile via storageService.
-            await storageService.saveContext(formData);
             setStep(2); // Success animation
             setTimeout(onComplete, 2000);
         }

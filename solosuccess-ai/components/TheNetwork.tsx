@@ -32,8 +32,6 @@ export const TheNetwork: React.FC = () => {
 
     const saveContacts = (newContacts: Contact[]) => {
         setContacts(newContacts);
-        // PRODUCTION NOTE: Contacts persisted to localStorage.
-        // Replace with CRM database integration.
         localStorage.setItem('solo_network', JSON.stringify(newContacts));
     };
 

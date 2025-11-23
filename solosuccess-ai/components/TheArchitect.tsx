@@ -4,6 +4,7 @@ import { generateProductSpec } from '../services/geminiService';
 import { ProductSpec, Task, AgentId } from '../types';
 import { addXP, showToast } from '../services/gameService';
 import { soundService } from '../services/soundService';
+import { storageService } from '../services/storageService';
 
 export const TheArchitect: React.FC = () => {
     const [idea, setIdea] = useState('');
@@ -13,17 +14,16 @@ export const TheArchitect: React.FC = () => {
     const [expandedFeature, setExpandedFeature] = useState<number | null>(null);
 
     useEffect(() => {
-        const saved = localStorage.getItem('solo_product_specs');
-        if (saved) {
-            try { setSpecs(JSON.parse(saved)); } catch (e) { }
-        }
+        const loadSpecs = async () => {
+            const saved = await storageService.getProductSpecs();
+            setSpecs(saved);
+        };
+        loadSpecs();
     }, []);
 
-    const saveSpecs = (newSpecs: ProductSpec[]) => {
+    const saveSpecs = async (newSpecs: ProductSpec[]) => {
         setSpecs(newSpecs);
-        // PRODUCTION NOTE: Persistence via localStorage.
-        // In production: await db.insert(productSpecs).values(newSpecs);
-        localStorage.setItem('solo_product_specs', JSON.stringify(newSpecs));
+        await storageService.saveProductSpecs(newSpecs);
     };
 
     const handleGenerate = async () => {
@@ -60,8 +60,7 @@ export const TheArchitect: React.FC = () => {
     };
 
     const handleDeployToRoadmap = async (spec: ProductSpec) => {
-        const currentTasksRaw = localStorage.getItem('solo_tactical_tasks');
-        const currentTasks: Task[] = currentTasksRaw ? JSON.parse(currentTasksRaw) : [];
+        const currentTasks = await storageService.getTasks();
 
         const newTasks: Task[] = spec.features.map((feat, i) => ({
             id: `task-spec-${spec.id}-${i}`,
@@ -75,7 +74,7 @@ export const TheArchitect: React.FC = () => {
         }));
 
         const updatedTasks = [...currentTasks, ...newTasks];
-        localStorage.setItem('solo_tactical_tasks', JSON.stringify(updatedTasks));
+        await storageService.saveTasks(updatedTasks);
 
         const { leveledUp } = await addXP(50);
         showToast("SPECS DEPLOYED", "Features added to Roadmap.", "xp", 50);

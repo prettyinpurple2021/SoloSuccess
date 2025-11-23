@@ -10,10 +10,6 @@ export const SignalTower: React.FC = () => {
     const [briefing, setBriefing] = useState<string | null>(null);
     const [sources, setSources] = useState<any[]>([]);
 
-    // PRODUCTION NOTE:
-    // This feature consumes search quotas. In production, cache results 
-    // in Redis/DB for at least 6-12 hours to prevent API rate limiting and reduce costs.
-
     const handleScan = async () => {
         setLoading(true);
         setBriefing(null);

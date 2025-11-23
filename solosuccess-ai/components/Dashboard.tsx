@@ -54,9 +54,6 @@ export const Dashboard: React.FC = () => {
     const [showBriefingModal, setShowBriefingModal] = useState(false);
 
     useEffect(() => {
-        // PRODUCTION NOTE: Dashboard aggregates data from localStorage keys.
-        // In production, this should be a server-side aggregation query or a unified API endpoint.
-
         const loadData = async () => {
             // Load Context
             try {

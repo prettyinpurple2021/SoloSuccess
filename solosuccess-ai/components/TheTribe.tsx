@@ -26,8 +26,6 @@ export const TheTribe: React.FC = () => {
         const result = await generateTribeBlueprint(audience, enemy);
         if (result) {
             setBlueprint(result);
-            // PRODUCTION NOTE: Persistence via localStorage.
-            // In production: await db.insert(tribes).values(result);
             localStorage.setItem('solo_tribe_blueprint', JSON.stringify(result));
 
             const { leveledUp } = await addXP(100);

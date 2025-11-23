@@ -7,10 +7,6 @@ import { AgentId } from '../types';
 import { pcmToBase64, base64ToUint8Array, decodeAudioData } from '../utils/audioUtils';
 import { soundService } from '../services/soundService';
 
-// PRODUCTION NOTE: 
-// 1. NEVER expose your API_KEY in client-side code in production.
-// 2. For Gemini Live (WebSockets), you should implement a backend proxy or 
-//    generate ephemeral tokens on your server to authenticate the client.
 const apiKey = process.env.API_KEY || '';
 
 export const TheUplink: React.FC = () => {

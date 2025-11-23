@@ -61,8 +61,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         };
         loadProgress();
 
-        // PRODUCTION NOTE: Fetch user profile and business context from your database here.
-        // Example: const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
         const saved = localStorage.getItem('solo_business_context');
         if (saved) {
             const ctx: BusinessContext = JSON.parse(saved);
@@ -153,7 +151,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     const handleLogout = () => {
         soundService.playClick();
         if (confirm("Reboot System? This will clear your session context.")) {
-            // PRODUCTION NOTE: Handle proper auth logout (e.g., clear cookies/tokens)
+
             localStorage.removeItem('solo_business_context');
             window.location.reload();
         }

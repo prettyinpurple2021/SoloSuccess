@@ -123,9 +123,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, setIsOpe
             colorClass: 'text-red-500',
             action: () => {
                 if (confirm("Reboot System? This will clear your session context.")) {
-                    // PRODUCTION NOTE: This is a client-side reset.
-                    // In production, implement proper auth logout (e.g., POST /api/auth/logout)
-                    // to invalidate session tokens and clear HTTP-only cookies.
                     localStorage.removeItem('solo_business_context');
                     window.location.reload();
                 }

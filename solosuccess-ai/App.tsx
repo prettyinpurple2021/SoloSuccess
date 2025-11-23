@@ -119,7 +119,7 @@ function DashboardLayout() {
   };
 
   const handleFocusComplete = async (taskId: string) => {
-    // PRODUCTION NOTE: Now using storageService for persistence.
+
     await storageService.updateTask(taskId, {
       status: 'done',
       completedAt: new Date().toISOString()

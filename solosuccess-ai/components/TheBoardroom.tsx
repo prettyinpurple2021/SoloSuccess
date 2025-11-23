@@ -17,12 +17,6 @@ export const TheBoardroom: React.FC = () => {
         setReport(null);
         soundService.playClick();
 
-        // PRODUCTION NOTE: Data Aggregation
-        // Currently, this component pulls raw data from disparate localStorage keys.
-        // In a production environment with a real database, do NOT fetch all raw rows to the client.
-        // Instead, create a dedicated API endpoint (e.g., GET /api/reports/qbr) that performs 
-        // this aggregation and statistical analysis on the server (Postgres/SQL) or via a background job.
-        // This reduces bandwidth and keeps sensitive financial/strategy data secure.
 
         // Fetch data from DB via storageService
         const context = await storageService.getContext();

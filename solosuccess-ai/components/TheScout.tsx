@@ -5,6 +5,7 @@ import { generateJobDescription, generateInterviewGuide, generateSOP } from '../
 import { JobDescription, InterviewGuide, SOP } from '../types';
 import { addXP, showToast } from '../services/gameService';
 import { soundService } from '../services/soundService';
+import { storageService } from '../services/storageService';
 
 export const TheScout: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'recruit' | 'vet' | 'delegate'>('recruit');
@@ -34,9 +35,8 @@ export const TheScout: React.FC = () => {
         if (result) {
             setJd(result);
 
-            // PRODUCTION NOTE:
-            // Generated Job Descriptions are not currently saved.
-            // Add logic to persist these to the Vault or a 'HR' database table.
+            // Save to Vault
+            await storageService.saveJobDescription(result);
 
             addXP(40);
             showToast("JD GENERATED", "Recruitment beacon lit.", "xp", 40);

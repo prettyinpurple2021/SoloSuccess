@@ -20,9 +20,6 @@ export const TheStudio: React.FC = () => {
     const [loading, setLoading] = useState(false);
 
     const saveToVault = (imageBase64: string) => {
-        // PRODUCTION NOTE: Currently saving base64 to localStorage.
-        // In production, upload the image to a cloud bucket (S3, GCS, R2) and save the URL to the database.
-        // Storing large base64 strings in localStorage/DB text fields is an antipattern.
         const newAsset: CreativeAsset = {
             id: `img-${Date.now()}`,
             prompt: prompt,

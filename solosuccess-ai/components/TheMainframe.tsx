@@ -4,6 +4,7 @@ import { generateTechAudit, generateCodeSolution } from '../services/geminiServi
 import { TechStackAudit, CodeSnippet, SavedCodeSnippet } from '../types';
 import { addXP, showToast } from '../services/gameService';
 import { soundService } from '../services/soundService';
+import { storageService } from '../services/storageService';
 
 export const TheMainframe: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'audit' | 'fabricator'>('audit');
@@ -53,7 +54,7 @@ export const TheMainframe: React.FC = () => {
         }
     };
 
-    const handleSaveToVault = () => {
+    const handleSaveToVault = async () => {
         if (!codeResult || saved) return;
 
         const newSnippet: SavedCodeSnippet = {
@@ -63,11 +64,8 @@ export const TheMainframe: React.FC = () => {
             generatedAt: new Date().toISOString()
         };
 
-        // PRODUCTION NOTE: Persistence via localStorage.
-        // In production: await db.insert(codeSnippets).values(newSnippet);
-        const savedRaw = localStorage.getItem('solo_code_snippets');
-        const savedSnippets: SavedCodeSnippet[] = savedRaw ? JSON.parse(savedRaw) : [];
-        localStorage.setItem('solo_code_snippets', JSON.stringify([newSnippet, ...savedSnippets]));
+        // Save to Vault
+        await storageService.saveCodeSnippet(newSnippet);
 
         setSaved(true);
         showToast("SNIPPET ARCHIVED", "Code saved to The Vault.", "success");
