@@ -5,10 +5,13 @@ import { Server as SocketServer } from 'socket.io';
 import cors from 'cors';
 import { db } from './db';
 import { users, tasks, chatHistory, competitorReports, businessContext } from './db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, or } from 'drizzle-orm';
 import { z } from 'zod';
 import { GoogleGenAI } from '@google/genai';
 import { Redis } from '@upstash/redis';
+import bcrypt from 'bcryptjs';
+import { generateToken, verifyToken } from './utils/jwt';
+import { authMiddleware, AuthRequest } from './middleware/auth';
 
 const app = express();
 const httpServer = createServer(app);
@@ -30,8 +33,16 @@ const redis = new Redis({
 app.use(cors());
 app.use(express.json());
 
-// Middleware to extract user from Stack Auth headers
+// Middleware to extract user from Auth headers
 const getUserId = (req: express.Request): string | null => {
+    // Check for JWT first
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        const decoded = verifyToken(token);
+        if (decoded) return decoded.userId;
+    }
+
     // Stack Auth sends user ID in x-stack-user-id header
     const userId = req.headers['x-stack-user-id'] as string;
     return userId || null;
@@ -88,6 +99,63 @@ function broadcastToUser(userId: string, event: string, data: any) {
 }
 
 // --- Routes ---
+
+// Auth Routes
+app.post('/api/auth/signup', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email and password are required' });
+        }
+
+        const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
+        if (existingUser.length > 0) {
+            return res.status(400).json({ error: 'User already exists' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = await db.insert(users).values({
+            email,
+            password: hashedPassword,
+        }).returning();
+
+        const token = generateToken(String(newUser[0].id), email);
+
+        res.json({ token, user: newUser[0] });
+    } catch (error) {
+        console.error('Signup error:', error);
+        res.status(500).json({ error: 'Signup failed' });
+    }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email and password are required' });
+        }
+
+        const user = await db.select().from(users).where(eq(users.email, email)).limit(1);
+        if (user.length === 0 || !user[0].password) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        const validPassword = await bcrypt.compare(password, user[0].password);
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        const token = generateToken(String(user[0].id), email);
+
+        res.json({ token, user: user[0] });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Login failed' });
+    }
+});
 
 // AI Generation Proxy
 app.post('/api/generate', async (req, res) => {
@@ -166,10 +234,20 @@ app.get('/api/user', async (req, res) => {
         }
 
         // Get from database
-        let user = await db.select().from(users).where(eq(users.stackUserId, userId)).limit(1);
+        let user;
+        if (!isNaN(Number(userId))) {
+            user = await db.select().from(users).where(eq(users.id, Number(userId))).limit(1);
+        } else {
+            user = await db.select().from(users).where(eq(users.stackUserId, userId)).limit(1);
+        }
 
         if (user.length === 0) {
-            // Create new user
+            // Only create new user if it's a Stack Auth ID (non-numeric usually)
+            if (!isNaN(Number(userId))) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            // Create new user for Stack Auth
             const newUser = await db.insert(users).values({
                 email: `${userId}@stack.auth`,
                 stackUserId: userId
@@ -196,7 +274,13 @@ app.post('/api/user/progress', async (req, res) => {
 
         const { xp, level, totalActions } = req.body;
 
-        const user = await db.select().from(users).where(eq(users.stackUserId, userId)).limit(1);
+        let user;
+        if (!isNaN(Number(userId))) {
+            user = await db.select().from(users).where(eq(users.id, Number(userId))).limit(1);
+        } else {
+            user = await db.select().from(users).where(eq(users.stackUserId, userId)).limit(1);
+        }
+
         if (user.length === 0) {
             return res.status(404).json({ error: 'User not found' });
         }

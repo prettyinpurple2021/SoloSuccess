@@ -1,46 +1,61 @@
-import { useStackApp, useUser } from "@stackframe/stack";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { realtimeService } from "../services/realtimeService";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
-    const app = useStackApp();
-    const user = useUser();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | undefined>(undefined);
 
     useEffect(() => {
-        // If no user is signed in, redirect to sign in page
-        if (user === null) {
-            app.redirectToSignIn();
+        const checkAuth = () => {
+            const token = localStorage.getItem('token');
+            const userStr = localStorage.getItem('user');
+
+            if (!token || !userStr) {
+                setIsAuthenticated(false);
+                return;
+            }
+
+            try {
+                const user = JSON.parse(userStr);
+                // Connect realtime service
+                realtimeService.connect(user.id || user.stackUserId);
+                setIsAuthenticated(true);
+            } catch (e) {
+                console.error("Auth check failed", e);
+                setIsAuthenticated(false);
+            }
+        };
+
+        checkAuth();
+
+        return () => {
+            realtimeService.disconnect();
+        };
+    }, []);
+
+    useEffect(() => {
+        if (isAuthenticated === false) {
+            navigate('/login', { state: { from: location } });
         }
+    }, [isAuthenticated, navigate, location]);
 
-        // If user is authenticated, connect to real-time service
-        if (user) {
-            realtimeService.connect(user.id);
-
-            // Cleanup on unmount
-            return () => {
-                realtimeService.disconnect();
-            };
-        }
-    }, [user, app]);
-
-    // Show loading while checking auth status
-    if (user === undefined) {
+    if (isAuthenticated === undefined) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-gray-900 to-black">
+            <div className="min-h-screen flex items-center justify-center bg-[#050505]">
                 <div className="text-center">
-                    <Loader2 className="w-12 h-12 text-purple-400 animate-spin mx-auto mb-4" />
-                    <p className="text-gray-400">Verifying authentication...</p>
+                    <Loader2 className="w-12 h-12 text-emerald-500 animate-spin mx-auto mb-4" />
+                    <p className="text-zinc-400">Verifying authentication...</p>
                 </div>
             </div>
         );
     }
 
-    // User is not authenticated
-    if (user === null) {
-        return null; // Will redirect via useEffect
+    if (isAuthenticated === false) {
+        return null;
     }
 
-    // User is authenticated, render children
     return <>{children}</>;
 }

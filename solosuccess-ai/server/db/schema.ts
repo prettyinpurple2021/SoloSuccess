@@ -3,7 +3,8 @@ import { pgTable, serial, text, integer, timestamp, jsonb, boolean } from 'drizz
 export const users = pgTable('users', {
     id: serial('id').primaryKey(),
     email: text('email').unique(),
-    stackUserId: text('stack_user_id').unique(), // Stack Auth user ID
+    password: text('password'), // Hashed password
+    stackUserId: text('stack_user_id').unique(), // Stack Auth user ID (optional now)
     xp: integer('xp').default(0),
     level: integer('level').default(1),
     totalActions: integer('total_actions').default(0),

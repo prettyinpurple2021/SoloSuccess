@@ -38,9 +38,13 @@ import { AuthGate } from './components/AuthGate';
 import { AgentId, Task } from './types';
 import { Menu, NotebookPen } from 'lucide-react'
 import { useSwipe } from './hooks/useSwipe';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { LandingPage } from './components/LandingPage';
+import { Login } from './components/auth/Login';
+import { Signup } from './components/auth/Signup';
 
 
-function App() {
+function DashboardLayout() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [activeAgent, setActiveAgent] = useState<AgentId | null>(null);
   const [isBooted, setIsBooted] = useState(false);
@@ -124,9 +128,7 @@ function App() {
 
   if (!isBooted) {
     return (
-      <AuthGate>
-        <SystemBoot onComplete={handleBootComplete} />
-      </AuthGate>
+      <SystemBoot onComplete={handleBootComplete} />
     );
   }
 
@@ -284,6 +286,22 @@ function App() {
         </div>
       </main>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/app/*" element={
+        <AuthGate>
+          <DashboardLayout />
+        </AuthGate>
+      } />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
