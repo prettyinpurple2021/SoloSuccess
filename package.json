@@ -1,5 +1,47 @@
 {
+  "name": "solosuccess-ai",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:all": "concurrently \"npm run dev\" \"cd server && npm run dev\"",
+    "build": "npm run build --prefix server && vite build",
+    "start": "cd server && npm start",
+    "preview": "vite preview",
+    "db:generate": "drizzle-kit generate --config=server/drizzle.config.ts",
+    "db:push": "drizzle-kit push --config=server/drizzle.config.ts",
+    "db:studio": "drizzle-kit studio --config=server/drizzle.config.ts",
+    "test": "vitest run"
+  },
   "dependencies": {
-    "@stackframe/react": "^2.8.52"
+    "@google/genai": "^1.30.0",
+    "@stackframe/stack": "^2.8.52",
+    "@stripe/stripe-js": "^8.5.2",
+    "@upstash/redis": "^1.35.6",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.44.7",
+    "lucide-react": "^0.554.0",
+    "pg": "^8.16.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.9.6",
+    "recharts": "^3.4.1",
+    "resend": "^6.5.2",
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.0",
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.2.6",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.2.1",
+    "drizzle-kit": "^0.31.7",
+    "jsdom": "^27.2.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0",
+    "vitest": "^2.0.0"
   }
 }
