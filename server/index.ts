@@ -17,6 +17,8 @@ import path from 'path';
 import rateLimit from 'express-rate-limit';
 
 const app = express();
+// Trust proxy for correct IP identification behind reverse proxies (e.g., Render, Heroku, AWS)
+app.set('trust proxy', 1);
 const httpServer = createServer(app);
 const io = new SocketServer(httpServer, {
     cors: {
@@ -627,7 +629,7 @@ if (process.env.NODE_ENV === 'production') {
     // Rate limiter for index.html (client-side routing)
     const clientRouteLimiter = rateLimit({
         windowMs: 15 * 60 * 1000, // 15 minutes
-        max: 100, // limit each IP to 100 requests per windowMs
+        max: 1000, // limit each IP to 1000 requests per windowMs
         standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers
     });
