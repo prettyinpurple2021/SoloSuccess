@@ -8,8 +8,20 @@ import { authMiddleware, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
+// Rate limiter for admin endpoints - strict limits for security
+const adminRateLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute window
+    max: 10, // limit each IP to 10 requests per windowMs
+    message: { error: 'Too many requests, please try again later' },
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Apply rate limiting to all admin routes
+router.use(adminRateLimiter);
+
 // Verify PIN endpoint (doesn't require admin role yet, used to elevate session)
-router.post('/verify-pin', authMiddleware, async (req: Request, res: Response) => {
+router.post('/verify-pin', authMiddleware as any, async (req: Request, res: Response) => {
     try {
         const { pin } = req.body;
         const userEmail = ((req as unknown) as AuthRequest).userEmail;
