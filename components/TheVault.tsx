@@ -5,6 +5,43 @@ import { CompetitorReport, SavedWarRoomSession, PitchDeck, CreativeAsset, SavedC
 import { soundService } from '../services/soundService';
 import { generateCompetitorMarkdown, generateWarRoomMarkdown, downloadMarkdown } from '../services/exportService';
 
+
+// Allowed MIME type prefixes for base64 images
+// Note: SVG is intentionally excluded because SVG can contain script tags and other active content
+// which makes it unsafe for direct rendering from untrusted sources
+const SAFE_IMAGE_PREFIXES = [
+    'data:image/png;base64,',
+    'data:image/jpeg;base64,',
+    'data:image/jpg;base64,',
+    'data:image/gif;base64,',
+    'data:image/webp;base64,'
+] as const;
+
+// Validate that a string is a safe base64 image data URL
+// Returns the sanitized URL if valid, or empty string if invalid
+function getSafeImageSrc(src: unknown): string {
+    if (typeof src !== 'string' || !src) {
+        return '';
+    }
+    
+    // Check if the source starts with one of the allowed prefixes
+    const matchedPrefix = SAFE_IMAGE_PREFIXES.find(prefix => src.startsWith(prefix));
+    if (!matchedPrefix) {
+        return '';
+    }
+    
+    // Extract the base64 content and validate it contains only valid base64 characters
+    const base64Content = src.slice(matchedPrefix.length);
+    // Base64 characters are A-Z, a-z, 0-9, +, /, and = for padding
+    // Require at least one character before optional padding
+    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(base64Content)) {
+        return '';
+    }
+    
+    // Return the validated and reconstructed URL
+    return matchedPrefix + base64Content;
+}
+
 type VaultTab = 'all' | 'intel' | 'strategy' | 'visuals' | 'decks' | 'code';
 
 export const TheVault: React.FC = () => {
@@ -91,8 +128,13 @@ export const TheVault: React.FC = () => {
             });
             downloadMarkdown(`Deck_${item.title}`, content);
         } else if (type === 'image') {
+            const safeImageSrc = getSafeImageSrc(item.imageBase64);
+            if (!safeImageSrc) {
+                console.error("Invalid image source, download aborted");
+                return;
+            }
             const a = document.createElement('a');
-            a.href = item.imageBase64;
+            a.href = safeImageSrc;
             a.download = `asset_${item.id}.jpg`;
             document.body.appendChild(a);
             a.click();
@@ -222,11 +264,20 @@ export const TheVault: React.FC = () => {
                             `}
                         >
                             {/* Image Preview for Visuals */}
-                            {item._type === 'image' && viewMode === 'grid' && (
-                                <div className="aspect-video w-full bg-black mb-4 rounded overflow-hidden border border-zinc-800">
-                                    <img src={item.imageBase64} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="asset" />
-                                </div>
-                            )}
+                            {item._type === 'image' && viewMode === 'grid' && (() => {
+                                const safeImageSrc = getSafeImageSrc(item.imageBase64);
+                                return (
+                                    <div className="aspect-video w-full bg-black mb-4 rounded overflow-hidden border border-zinc-800">
+                                        {safeImageSrc ? (
+                                            <img src={safeImageSrc} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="asset" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-zinc-500 bg-zinc-800">
+                                                Invalid image source
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })()}
 
                             <div className="flex items-start justify-between mb-2">
                                 <div className="flex items-center gap-2">
