@@ -8,8 +8,15 @@ import { authMiddleware, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
+// Add a rate limiter to the verify-pin endpoint to prevent brute-force or DoS
+const verifyPinRateLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute window
+    max: 5, // limit each IP to 5 requests per windowMs
+    message: { error: 'Too many PIN verification attempts, please try again later.' }
+});
+
 // Verify PIN endpoint (doesn't require admin role yet, used to elevate session)
-router.post('/verify-pin', authMiddleware, async (req: Request, res: Response) => {
+router.post('/verify-pin', verifyPinRateLimiter, authMiddleware, async (req: Request, res: Response) => {
     try {
         const { pin } = req.body;
         const userEmail = ((req as unknown) as AuthRequest).userEmail;
