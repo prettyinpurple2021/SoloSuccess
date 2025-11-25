@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
+import jwt from 'jsonwebtoken';
 import { db } from '../db';
 import { users, subscriptions, adminActions, usageTracking } from '../db/schema';
 import { eq, desc, count, sql } from 'drizzle-orm';
@@ -27,12 +28,13 @@ const verifyPinRateLimiter = rateLimit({
 });
 
 // Verify PIN endpoint (doesn't require admin role yet, used to elevate session)
-router.post('/verify-pin', verifyPinRateLimiter, authMiddleware, async (req: Request, res: Response) => {
+router.post('/verify-pin', verifyPinRateLimiter, authMiddleware as any, async (req, res) => {
     try {
         const { pin } = req.body;
         const userEmail = ((req as unknown) as AuthRequest).userEmail;
+        const userId = ((req as unknown) as AuthRequest).userId;
 
-        if (!userEmail || !pin) {
+        if (!userEmail || !pin || !userId) {
             return res.status(400).json({ error: 'Missing requirements' });
         }
 
@@ -41,7 +43,19 @@ router.post('/verify-pin', verifyPinRateLimiter, authMiddleware, async (req: Req
             return res.status(401).json({ error: 'Invalid PIN' });
         }
 
-        res.json({ success: true });
+        // Generate Admin Session JWT Token
+        const adminToken = jwt.sign(
+            {
+                userId,
+                email: userEmail,
+                role: 'admin',
+                adminSession: true
+            },
+            process.env.JWT_SECRET!,
+            { expiresIn: '2h' } // 2-hour admin session
+        );
+
+        res.json({ success: true, adminToken });
     } catch (error) {
         console.error('PIN verification error:', error);
         res.status(500).json({ error: 'Verification failed' });
@@ -132,18 +146,29 @@ router.get('/users/:userId', async (req: Request, res: Response) => {
 router.post('/users/:userId/suspend', async (req: Request, res: Response) => {
     try {
         const userId = Number(req.params.userId);
-        // In a real app, we'd have a suspended flag or status
-        // For now, we'll just log the action
+        const { reason } = req.body;
+        const adminUserId = Number(((req as unknown) as AuthRequest).userId!);
 
+        // Update user suspended status in database
+        await db.update(users)
+            .set({
+                suspended: true,
+                suspendedAt: new Date(),
+                suspendedReason: reason || 'Account suspended by administrator'
+            })
+            .where(eq(users.id, userId));
+
+        // Log the admin action
         await db.insert(adminActions).values({
-            adminUserId: Number(((req as unknown) as AuthRequest).userId!),
+            adminUserId,
             action: 'suspend_user',
             targetUserId: userId,
-            details: { reason: req.body.reason }
+            details: { reason }
         });
 
-        res.json({ success: true, message: 'User suspended (logged)' });
+        res.json({ success: true, message: 'User suspended successfully' });
     } catch (error) {
+        console.error('Error suspending user:', error);
         res.status(500).json({ error: 'Failed to suspend user' });
     }
 });
