@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { db } from '../db';
 import { users, subscriptions, adminActions, usageTracking } from '../db/schema';
 import { eq, desc, count, sql } from 'drizzle-orm';
@@ -7,11 +8,26 @@ import { authMiddleware, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
-// Apply auth middleware to all admin routes
-router.use(authMiddleware as any);
+// Rate limiter for admin endpoints - strict limits for security
+const adminRateLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute window
+    max: 10, // limit each IP to 10 requests per windowMs
+    message: { error: 'Too many requests, please try again later' },
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Add a rate limiter to the verify-pin endpoint to prevent brute-force or DoS
+const verifyPinRateLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute window
+    max: 5, // limit each IP to 5 requests per windowMs
+    message: { error: 'Too many PIN verification attempts, please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 // Verify PIN endpoint (doesn't require admin role yet, used to elevate session)
-router.post('/verify-pin', async (req: Request, res: Response) => {
+router.post('/verify-pin', verifyPinRateLimiter, authMiddleware, async (req: Request, res: Response) => {
     try {
         const { pin } = req.body;
         const userEmail = ((req as unknown) as AuthRequest).userEmail;
@@ -34,6 +50,8 @@ router.post('/verify-pin', async (req: Request, res: Response) => {
 
 // Apply admin role check for all subsequent routes
 router.use(requireAdmin as any);
+// Apply rate limiting to all subsequent admin routes (post-auth + role check)
+router.use(adminRateLimiter);
 
 // Analytics Dashboard
 router.get('/analytics', async (req: Request, res: Response) => {
