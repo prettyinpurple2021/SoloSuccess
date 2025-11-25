@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
+import { Pool } from 'pg';
 import * as schema from './schema';
 import dotenv from 'dotenv';
 
@@ -12,14 +12,26 @@ if (!connectionString) {
     console.warn("⚠️  WARNING: DATABASE_URL is not defined. The backend will crash if you try to query the DB.");
 }
 
-const client = new Client({
+// Use a connection pool for production readiness
+const pool = new Pool({
     connectionString: connectionString,
+    max: 20, // Maximum number of clients in the pool
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+});
+
+// The pool will emit an error on behalf of any idle client it contains
+// if a backend error or network partition happens
+pool.on('error', (err, client) => {
+    console.error('Unexpected error on idle client', err);
+    // process.exit(-1); // Do not exit, let the pool handle reconnection for new clients
 });
 
 const connectDB = async () => {
     try {
-        await client.connect();
+        const client = await pool.connect();
         console.log("✅ Connected to Neon Database");
+        client.release();
     } catch (err) {
         console.error("❌ Failed to connect to Neon Database:", err);
     }
@@ -27,4 +39,4 @@ const connectDB = async () => {
 
 connectDB();
 
-export const db = drizzle(client, { schema });
+export const db = drizzle(pool, { schema });
