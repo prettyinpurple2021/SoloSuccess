@@ -12,6 +12,7 @@ import { Redis } from '@upstash/redis';
 import bcrypt from 'bcryptjs';
 import { generateToken, verifyToken } from './utils/jwt';
 import { authMiddleware, AuthRequest } from './middleware/auth';
+import { SearchIndexer } from './utils/searchIndexer';
 import adminRouter from './routes/admin';
 import contactsRouter from './routes/contacts';
 import pitchDecksRouter from './routes/pitchDecks';
@@ -112,6 +113,8 @@ import resourcesRouter from './routes/resources';
 
 // ... (imports)
 
+import searchRouter from './routes/search';
+import notificationsRouter from './routes/notifications';
 import aiRouter from './routes/ai';
 
 // ... (imports)
@@ -122,6 +125,8 @@ app.use('/api/pitch-decks', pitchDecksRouter);
 app.use('/api/stripe', stripeRouter);
 app.use('/api/resources', resourcesRouter);
 app.use('/api/ai', aiRouter);
+app.use('/api/search', searchRouter);
+app.use('/api/notifications', notificationsRouter);
 
 // Auth Routes
 app.post('/api/auth/signup', async (req: Request, res: Response) => {
@@ -382,6 +387,9 @@ app.post('/api/tasks', async (req: Request, res: Response) => {
         await invalidateCache(`tasks:${userId}`);
         broadcastToUser(userId, 'task:updated', result[0]);
 
+        // Index for search
+        await SearchIndexer.indexTask(userId, result[0]);
+
         res.json(result[0]);
     } catch (error) {
         console.error(error);
@@ -412,6 +420,8 @@ app.post('/api/tasks/batch', async (req: Request, res: Response) => {
             } else {
                 await db.insert(tasks).values(taskData);
             }
+            // Index each task
+            await SearchIndexer.indexTask(userId, taskData);
         }
 
         await invalidateCache(`tasks:${userId}`);
@@ -437,6 +447,9 @@ app.delete('/api/tasks/:id', async (req: Request, res: Response) => {
 
         await invalidateCache(`tasks:${userId}`);
         broadcastToUser(userId, 'task:deleted', { id });
+
+        // Remove from index
+        await SearchIndexer.removeFromIndex(userId, 'task', id);
 
         res.json({ success: true });
     } catch (error) {
@@ -632,6 +645,9 @@ app.post('/api/reports', async (req: Request, res: Response) => {
 
         await invalidateCache(`reports:${userId}`);
         broadcastToUser(userId, 'report:created', report);
+
+        // Index for search
+        await SearchIndexer.indexReport(userId, { ...report, id: report.competitorName }); // Using name as ID for now since it's not returning ID
 
         res.json({ success: true });
     } catch (error) {

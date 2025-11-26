@@ -4,6 +4,7 @@ import { contacts } from '../db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { checkSuspended } from '../middleware/checkSuspended';
+import { SearchIndexer } from '../utils/searchIndexer';
 
 const router = express.Router();
 
@@ -78,6 +79,9 @@ router.post('/', async (req: Request, res: Response) => {
             })
             .returning();
 
+        // Index for search
+        await SearchIndexer.indexContact(String(userId), newContact);
+
         res.status(201).json(newContact);
     } catch (error) {
         console.error('Error creating contact:', error);
@@ -121,6 +125,9 @@ router.put('/:id', async (req: Request, res: Response) => {
             .where(eq(contacts.id, contactId))
             .returning();
 
+        // Update index
+        await SearchIndexer.indexContact(String(userId), updated);
+
         res.json(updated);
     } catch (error) {
         console.error('Error updating contact:', error);
@@ -149,6 +156,9 @@ router.delete('/:id', async (req: Request, res: Response) => {
 
         await db.delete(contacts)
             .where(eq(contacts.id, contactId));
+
+        // Remove from index
+        await SearchIndexer.removeFromIndex(String(userId), 'contact', String(contactId));
 
         res.json({ success: true, message: 'Contact deleted' });
     } catch (error) {

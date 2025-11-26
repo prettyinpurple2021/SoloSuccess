@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { TrendingUp, Users, ShieldAlert, Activity, ArrowUpRight, Zap, Eye, CheckCircle2, CalendarClock, ArrowRight, FileText, X, Quote } from 'lucide-react';
+import { TrendingUp, Users, ShieldAlert, Activity, ArrowUpRight, Zap, Eye, CheckCircle2, CalendarClock, ArrowRight, FileText, X, Quote, Sparkles, AlertTriangle } from 'lucide-react';
 import { AGENTS } from '../constants';
 import { AgentId, DailyBriefing, Task } from '../types';
 import { geminiService } from '../services/geminiService';
@@ -49,7 +49,7 @@ export const Dashboard: React.FC = () => {
     const [chartData, setChartData] = useState<any[]>([]);
 
     // Briefing State
-    const [briefing, setBriefing] = useState<DailyBriefing | null>(null);
+    const [briefing, setBriefing] = useState<any>(null);
     const [loadingBriefing, setLoadingBriefing] = useState(false);
     const [showBriefingModal, setShowBriefingModal] = useState(false);
 
@@ -158,6 +158,16 @@ export const Dashboard: React.FC = () => {
 
             generateChartData();
 
+            // Check for existing briefing
+            try {
+                setLoadingBriefing(true);
+                const data = await geminiService.generateDailyBriefing();
+                if (data) setBriefing(data);
+                setLoadingBriefing(false);
+            } catch (e) {
+                console.error(e);
+                setLoadingBriefing(false);
+            }
         };
 
         loadData();
@@ -205,6 +215,55 @@ export const Dashboard: React.FC = () => {
                 </div>
             </div>
 
+            {/* Daily Intelligence Card */}
+            {briefing && (
+                <div className="mb-8 bg-gradient-to-r from-indigo-900/40 to-purple-900/40 border border-indigo-500/30 rounded-xl p-6 backdrop-blur-sm">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                                <Sparkles className="w-5 h-5 text-yellow-400" />
+                                Today's Focus
+                            </h2>
+                            <p className="text-indigo-200 italic mb-4">"{briefing.motivationalQuote}"</p>
+                        </div>
+                        <button
+                            onClick={() => setShowBriefingModal(true)}
+                            className="text-sm text-indigo-300 hover:text-white underline"
+                        >
+                            View Full Briefing
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-semibold text-indigo-300 uppercase tracking-wider">Priority Actions</h3>
+                            <ul className="space-y-2">
+                                {briefing.focusPoints?.slice(0, 3).map((point: string, i: number) => (
+                                    <li key={i} className="flex items-start gap-2 text-gray-300 text-sm">
+                                        <span className="mt-1 w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0" />
+                                        {point}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {briefing.threatAlerts?.length > 0 && (
+                            <div className="space-y-3">
+                                <h3 className="text-sm font-semibold text-red-400 uppercase tracking-wider">Threat Alerts</h3>
+                                <ul className="space-y-2">
+                                    {briefing.threatAlerts?.slice(0, 2).map((alert: string, i: number) => (
+                                        <li key={i} className="flex items-start gap-2 text-red-200 text-sm bg-red-900/20 p-2 rounded">
+                                            <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                            {alert}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {/* Briefing Modal Overlay */}
             {showBriefingModal && briefing && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300 safe-top safe-bottom">
@@ -248,7 +307,7 @@ export const Dashboard: React.FC = () => {
                                         <CheckCircle2 size={14} /> Primary Objectives
                                     </h4>
                                     <ul className="space-y-3">
-                                        {briefing.focusPoints.map((pt, i) => (
+                                        {briefing.focusPoints.map((pt: string, i: number) => (
                                             <li key={i} className="flex items-start gap-2 text-sm text-zinc-300">
                                                 <span className="text-emerald-500/50 mt-1">›</span> {pt}
                                             </li>
@@ -263,7 +322,7 @@ export const Dashboard: React.FC = () => {
                                     </h4>
                                     {briefing.threatAlerts.length > 0 ? (
                                         <ul className="space-y-3">
-                                            {briefing.threatAlerts.map((pt, i) => (
+                                            {briefing.threatAlerts.map((pt: string, i: number) => (
                                                 <li key={i} className="flex items-start gap-2 text-sm text-zinc-300">
                                                     <span className="text-red-500/50 mt-1">›</span> {pt}
                                                 </li>

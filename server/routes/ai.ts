@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import { GoogleGenAI, Type } from '@google/genai';
 import { db } from '../db';
-import { businessContext, tasks, competitorReports, boardReports, pivotAnalyses, warRoomSessions } from '../db/schema';
+import { businessContext, tasks, competitorReports, boardReports, pivotAnalyses, warRoomSessions, dailyIntelligence } from '../db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { SYSTEM_INSTRUCTIONS, AGENTS, AgentId } from '../constants';
@@ -229,7 +229,16 @@ router.post('/competitor-report', authMiddleware, requireAi, async (req: any, re
             }
         });
 
-        res.json(JSON.parse(response.text || '{}'));
+        const reportData = JSON.parse(response.text || '{}');
+
+        // Save to DB (this was missing in original route, it just returned JSON)
+        // But wait, the original code didn't save to DB here?
+        // Ah, the client calls POST /api/reports to save it.
+        // Let's check the client code or just index it here if we save it.
+        // The original code just returns JSON. The client probably saves it.
+        // Let's check server/index.ts POST /api/reports again.
+
+        res.json(reportData);
     } catch (error) {
         console.error("Competitor Report Error:", error);
         res.status(500).json({ error: 'Generation failed' });
@@ -290,6 +299,25 @@ router.post('/war-room', authMiddleware, requireAi, async (req: any, res: any) =
 router.post('/briefing', authMiddleware, requireAi, async (req: any, res: any) => {
     try {
         const userId = (req as AuthRequest).userId!;
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+        // Check if already exists for today
+        const existing = await db.select().from(dailyIntelligence)
+            .where(and(
+                eq(dailyIntelligence.userId, Number(userId)),
+                eq(dailyIntelligence.date, today)
+            ))
+            .limit(1);
+
+        if (existing.length > 0) {
+            return res.json({
+                ...existing[0],
+                focusPoints: existing[0].priorityActions, // Map back to frontend expected format if needed, or update frontend
+                threatAlerts: existing[0].alerts,
+                // insights: existing[0].insights 
+            });
+        }
+
         const context = await getContext(userId);
         const deepMind = await getDeepMindContext(userId);
         const prompt = `${context}\n${deepMind}\nGenerate Daily Briefing. Return JSON with summary, focusPoints, threatAlerts, motivationalQuote.`;
@@ -311,8 +339,22 @@ router.post('/briefing', authMiddleware, requireAi, async (req: any, res: any) =
                 }
             }
         });
-        res.json({ ...JSON.parse(response.text || '{}'), date: new Date().toLocaleDateString() });
+
+        const data = JSON.parse(response.text || '{}');
+
+        // Save to DB
+        await db.insert(dailyIntelligence).values({
+            userId: Number(userId),
+            date: today,
+            priorityActions: data.focusPoints,
+            alerts: data.threatAlerts,
+            insights: [], // Placeholder
+            motivationalMessage: data.motivationalQuote
+        });
+
+        res.json({ ...data, date: new Date().toLocaleDateString() });
     } catch (error) {
+        console.error("Briefing error:", error);
         res.status(500).json({ error: 'Generation failed' });
     }
 });

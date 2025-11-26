@@ -25,9 +25,13 @@ class SearchService {
      */
     async search(query: string, filters?: SearchFilters): Promise<SearchResult[]> {
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ filters })
             });
 
