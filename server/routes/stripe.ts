@@ -1,0 +1,147 @@
+import express from 'express';
+import { stripe, PRICE_IDS } from '../stripe';
+import { db } from '../db';
+import { subscriptions, users } from '../db/schema';
+import { eq } from 'drizzle-orm';
+
+const router = express.Router();
+
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+
+// Create Checkout Session
+router.post('/create-checkout-session', async (req, res) => {
+    try {
+        const { priceId, userId } = req.body;
+
+        if (!priceId || !userId) {
+            return res.status(400).json({ error: 'Missing priceId or userId' });
+        }
+
+        // Get user email
+        const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+        if (!user.length) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const session = await stripe.checkout.sessions.create({
+            mode: 'subscription',
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price: priceId,
+                    quantity: 1,
+                },
+            ],
+            customer_email: user[0].email || undefined,
+            client_reference_id: userId.toString(),
+            success_url: `${CLIENT_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${CLIENT_URL}/pricing`,
+            metadata: {
+                userId: userId.toString(),
+            }
+        });
+
+        res.json({ url: session.url });
+    } catch (error: any) {
+        console.error('Stripe Checkout Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Webhook Handler
+router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    let event;
+
+    try {
+        if (!sig || !endpointSecret) throw new Error('Missing signature or secret');
+        event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    } catch (err: any) {
+        console.error(`Webhook Error: ${err.message}`);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Handle the event
+    switch (event.type) {
+        case 'checkout.session.completed':
+            const session = event.data.object;
+            await handleCheckoutCompleted(session);
+            break;
+        case 'customer.subscription.updated':
+        case 'customer.subscription.deleted':
+            const subscription = event.data.object;
+            await handleSubscriptionUpdated(subscription);
+            break;
+        default:
+            console.log(`Unhandled event type ${event.type}`);
+    }
+
+    res.send();
+});
+
+async function handleCheckoutCompleted(session: any) {
+    const userId = parseInt(session.client_reference_id);
+    const subscriptionId = session.subscription;
+    const customerId = session.customer;
+
+    // Retrieve subscription to get the price ID (to determine tier)
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const priceId = subscription.items.data[0].price.id;
+
+    let tier = 'free';
+    if (priceId === PRICE_IDS.solo) tier = 'solo';
+    if (priceId === PRICE_IDS.pro) tier = 'pro';
+    if (priceId === PRICE_IDS.agency) tier = 'agency';
+
+    // Update or Insert Subscription
+    // Check if exists
+    const existing = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId));
+
+    if (existing.length) {
+        await db.update(subscriptions)
+            .set({
+                stripeCustomerId: customerId,
+                stripeSubscriptionId: subscriptionId,
+                stripePriceId: priceId,
+                tier: tier,
+                status: 'active',
+                currentPeriodEnd: new Date(subscription.current_period_end * 1000)
+            })
+            .where(eq(subscriptions.userId, userId));
+    } else {
+        await db.insert(subscriptions).values({
+            userId,
+            stripeCustomerId: customerId,
+            stripeSubscriptionId: subscriptionId,
+            stripePriceId: priceId,
+            tier: tier,
+            status: 'active',
+            currentPeriodEnd: new Date(subscription.current_period_end * 1000)
+        });
+    }
+}
+
+async function handleSubscriptionUpdated(subscription: any) {
+    const subscriptionId = subscription.id;
+    const status = subscription.status;
+    const priceId = subscription.items.data[0].price.id;
+
+    let tier = 'free';
+    if (status === 'active') {
+        if (priceId === PRICE_IDS.solo) tier = 'solo';
+        if (priceId === PRICE_IDS.pro) tier = 'pro';
+        if (priceId === PRICE_IDS.agency) tier = 'agency';
+    }
+
+    await db.update(subscriptions)
+        .set({
+            status: status,
+            tier: tier,
+            currentPeriodEnd: new Date(subscription.current_period_end * 1000)
+        })
+        .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
+}
+
+export default router;

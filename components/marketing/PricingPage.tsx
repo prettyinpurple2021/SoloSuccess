@@ -1,6 +1,6 @@
 import React from 'react';
 import { MarketingLayout } from './layout/MarketingLayout';
-import { Check } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 
 export function PricingPage() {
     return (
@@ -15,52 +15,67 @@ export function PricingPage() {
                     </p>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                    {/* Starter Plan */}
+                <div className="grid md:grid-cols-4 gap-6 max-w-7xl mx-auto">
+                    {/* Free Plan */}
                     <PricingCard
-                        title="Starter"
+                        title="Free"
                         price="$0"
-                        description="Perfect for validating your first idea."
+                        description="For the curious explorer."
                         features={[
-                            "Basic Strategic Roadmap",
-                            "3 Active Projects",
+                            "1 Business Profile",
+                            "5 Saved Items (Storage)",
                             "Limited AI Credits",
+                            "View-Only Advanced Tools",
                             "Community Support"
+                        ]}
+                    />
+
+                    {/* Solo Plan */}
+                    <PricingCard
+                        title="Solo"
+                        price="$29"
+                        period="/month"
+                        description="For the side-hustler."
+                        isPopular
+                        features={[
+                            "1 Business Profile",
+                            "50 Saved Items",
+                            "Unlimited AI Text",
+                            "5 Competitors Tracked",
+                            "50 Research Credits",
+                            "Full Tool Access"
                         ]}
                     />
 
                     {/* Pro Plan */}
                     <PricingCard
-                        title="Professional"
-                        price="$79"
+                        title="Pro"
+                        price="$49"
                         period="/month"
-                        description="For serious solopreneurs scaling their business."
-                        isPopular
+                        description="For the full-time founder."
                         features={[
-                            "Everything in Starter",
-                            "Unlimited AI Generations",
-                            "Unlimited Competitors",
                             "3 Business Profiles",
-                            "Priority Support (24hr)",
-                            "Email Integration (Coming Soon)",
-                            "Cash Flow Forecasting",
-                            "Custom Branding"
+                            "Unlimited Storage",
+                            "Unlimited AI Text",
+                            "15 Competitors Tracked",
+                            "200 Research Credits",
+                            "Priority Support"
                         ]}
                     />
 
-                    {/* Empire Plan */}
+                    {/* Agency Plan */}
                     <PricingCard
-                        title="Empire"
+                        title="Agency"
                         price="$99"
                         period="/month"
-                        description="Maximum power for established businesses."
+                        description="For power users & teams."
                         features={[
-                            "Everything in Pro",
-                            "Unlimited Competitor Tracking",
-                            "Custom AI Agent Training",
-                            "API Access",
-                            "Dedicated Account Manager",
-                            "White-label Reports"
+                            "Unlimited Businesses",
+                            "Unlimited Storage",
+                            "Unlimited Everything",
+                            "50 Competitors Tracked",
+                            "1000 Research Credits",
+                            "API Access"
                         ]}
                     />
                 </div>
@@ -78,34 +93,34 @@ function PricingCard({ title, price, period, description, features, isPopular }:
     isPopular?: boolean
 }) {
     return (
-        <div className={`relative p-8 rounded-2xl border ${isPopular ? 'bg-white/10 border-emerald-500 shadow-2xl shadow-emerald-500/20' : 'bg-white/5 border-white/10'} flex flex-col`}>
+        <div className={`relative p-6 rounded-2xl border ${isPopular ? 'bg-white/10 border-emerald-500 shadow-2xl shadow-emerald-500/20' : 'bg-white/5 border-white/10'} flex flex-col`}>
             {isPopular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-emerald-500 text-black text-xs font-bold rounded-full uppercase tracking-wide">
                     Most Popular
                 </div>
             )}
 
-            <div className="mb-8">
+            <div className="mb-6">
                 <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
                 <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-4xl font-bold text-white">{price}</span>
-                    {period && <span className="text-zinc-400">{period}</span>}
+                    <span className="text-3xl font-bold text-white">{price}</span>
+                    {period && <span className="text-zinc-400 text-sm">{period}</span>}
                 </div>
-                <p className="text-zinc-400 text-sm">{description}</p>
+                <p className="text-zinc-400 text-sm h-10">{description}</p>
             </div>
 
-            <div className="space-y-4 mb-8 flex-1">
+            <div className="space-y-3 mb-8 flex-1">
                 {features.map((feature, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                        <div className={`p-1 rounded-full ${isPopular ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-zinc-400'}`}>
+                    <div key={i} className="flex items-start gap-3">
+                        <div className={`mt-0.5 p-0.5 rounded-full ${isPopular ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-zinc-400'}`}>
                             <Check className="w-3 h-3" />
                         </div>
-                        <span className="text-zinc-300 text-sm">{feature}</span>
+                        <span className="text-zinc-300 text-sm leading-tight">{feature}</span>
                     </div>
                 ))}
             </div>
 
-            <button className={`w-full py-3 rounded-xl font-bold transition-all hover:scale-[1.02] active:scale-[0.98] ${isPopular
+            <button className={`w-full py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98] ${isPopular
                 ? 'bg-emerald-500 text-black hover:bg-emerald-400 shadow-lg shadow-emerald-500/25'
                 : 'bg-white text-black hover:bg-zinc-200'
                 }`}>
@@ -114,3 +129,4 @@ function PricingCard({ title, price, period, description, features, isPopular }:
         </div>
     );
 }
+
