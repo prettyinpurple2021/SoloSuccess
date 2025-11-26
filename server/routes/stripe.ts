@@ -87,7 +87,7 @@ async function handleCheckoutCompleted(session: any) {
     const customerId = session.customer;
 
     // Retrieve subscription to get the price ID (to determine tier)
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId) as any;
     const priceId = subscription.items.data[0].price.id;
 
     let tier = 'free';
