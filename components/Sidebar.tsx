@@ -87,8 +87,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         const saved = localStorage.getItem('solo_business_context');
         if (saved) {
-            const ctx: BusinessContext = JSON.parse(saved);
-            setCompanyName(ctx.companyName.toUpperCase().replace(/\s/g, '_'));
+            try {
+                const ctx: BusinessContext = JSON.parse(saved);
+                if (ctx && ctx.companyName) {
+                    setCompanyName(ctx.companyName.toUpperCase().replace(/\s/g, '_'));
+                }
+            } catch (e) {
+                console.error('Failed to parse business context', e);
+            }
         }
 
         return subscribeToToasts(async (toast) => {
