@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import { GoogleGenAI, Type } from '@google/genai';
 import { db } from '../db';
-import { businessContext, tasks, competitorReports, boardReports, pivotAnalyses } from '../db/schema';
+import { businessContext, tasks, competitorReports, boardReports, pivotAnalyses, warRoomSessions } from '../db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { SYSTEM_INSTRUCTIONS, AGENTS, AgentId } from '../constants';
@@ -83,7 +83,7 @@ const getDeepMindContext = async (userId: string) => {
 
     // Strategic Memory (Board Reports)
     const lastQbr = await db.select().from(boardReports)
-        .where(eq(boardReports.userId, userId))
+        .where(eq(boardReports.userId, parseInt(userId)))
         .orderBy(desc(boardReports.generatedAt))
         .limit(1);
 
@@ -95,7 +95,7 @@ const getDeepMindContext = async (userId: string) => {
 
     // Market Gaps (The Pivot)
     const pivot = await db.select().from(pivotAnalyses)
-        .where(eq(pivotAnalyses.userId, userId))
+        .where(eq(pivotAnalyses.userId, parseInt(userId)))
         .orderBy(desc(pivotAnalyses.generatedAt))
         .limit(1);
 
@@ -247,7 +247,7 @@ router.post('/war-room', authMiddleware, requireAi, async (req: any, res: any) =
         let historyContext = "";
         if (previousSessionId) {
             const prevSession = await db.select().from(warRoomSessions)
-                .where(and(eq(warRoomSessions.id, previousSessionId), eq(warRoomSessions.userId, userId)))
+                .where(and(eq(warRoomSessions.id, previousSessionId), eq(warRoomSessions.userId, parseInt(userId))))
                 .limit(1);
 
             if (prevSession.length > 0) {
