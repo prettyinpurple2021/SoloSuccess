@@ -227,21 +227,32 @@ export const storageService = {
 
     // --- Brand DNA ---
     async getBrandDNA(): Promise<BrandDNA | null> {
-        return get<BrandDNA | null>(KEYS.BRAND_DNA, null);
+        const context = await this.getContext();
+        return context?.brandDna || null;
     },
 
     async saveBrandDNA(dna: BrandDNA): Promise<void> {
-        await delay();
-        set(KEYS.BRAND_DNA, dna);
+        const context = await this.getContext() || {
+            id: '',
+            userId: '',
+            companyName: '',
+            founderName: '',
+            industry: '',
+            description: '',
+            brandDna: dna,
+            updatedAt: new Date().toISOString()
+        };
+        context.brandDna = dna;
+        await this.saveContext(context);
     },
 
     // --- Competitor Reports ---
     async getCompetitorReports(): Promise<CompetitorReport[]> {
-        return apiCall<CompetitorReport[]>('GET', '/api/reports', undefined, KEYS.REPORTS, []);
+        return apiCall<CompetitorReport[]>('GET', '/api/resources/competitor-reports', undefined, KEYS.REPORTS, []);
     },
 
     async saveCompetitorReport(report: CompetitorReport): Promise<void> {
-        await apiCall('POST', '/api/reports', report, KEYS.REPORTS);
+        await apiCall('POST', '/api/resources/competitor-reports', report, KEYS.REPORTS);
         const reports = await this.getCompetitorReports();
         reports.unshift(report);
         set(KEYS.REPORTS, reports);
@@ -263,14 +274,13 @@ export const storageService = {
 
     // --- Creative Assets ---
     async getCreativeAssets(): Promise<CreativeAsset[]> {
-        await delay();
-        return get<CreativeAsset[]>(KEYS.CREATIVE_ASSETS, []);
+        return apiCall<CreativeAsset[]>('GET', '/api/resources/creative', undefined, KEYS.CREATIVE_ASSETS, []);
     },
 
     async saveCreativeAsset(asset: CreativeAsset): Promise<void> {
+        await apiCall('POST', '/api/resources/creative', asset, KEYS.CREATIVE_ASSETS);
         const assets = await this.getCreativeAssets();
         assets.unshift(asset);
-        await delay();
         set(KEYS.CREATIVE_ASSETS, assets);
     },
 
@@ -289,167 +299,164 @@ export const storageService = {
 
     // --- Launch Strategies ---
     async getLaunchStrategies(): Promise<LaunchStrategy[]> {
-        await delay();
-        return get<LaunchStrategy[]>(KEYS.LAUNCH_STRATEGIES, []);
+        return apiCall<LaunchStrategy[]>('GET', '/api/resources/launch', undefined, KEYS.LAUNCH_STRATEGIES, []);
     },
 
     async saveLaunchStrategy(strategy: LaunchStrategy): Promise<void> {
+        await apiCall('POST', '/api/resources/launch', strategy, KEYS.LAUNCH_STRATEGIES);
         const items = await this.getLaunchStrategies();
         items.unshift(strategy);
-        await delay();
         set(KEYS.LAUNCH_STRATEGIES, items);
     },
 
     // --- Tribe Blueprints ---
     async getTribeBlueprints(): Promise<TribeBlueprint[]> {
-        await delay();
-        return get<TribeBlueprint[]>(KEYS.TRIBE_BLUEPRINTS, []);
+        return apiCall<TribeBlueprint[]>('GET', '/api/resources/tribe', undefined, KEYS.TRIBE_BLUEPRINTS, []);
     },
 
     async saveTribeBlueprint(blueprint: TribeBlueprint): Promise<void> {
+        await apiCall('POST', '/api/resources/tribe', blueprint, KEYS.TRIBE_BLUEPRINTS);
         const items = await this.getTribeBlueprints();
         items.unshift(blueprint);
-        await delay();
         set(KEYS.TRIBE_BLUEPRINTS, items);
     },
 
     // --- SOPs & HR ---
     async getSOPs(): Promise<SOP[]> {
-        await delay();
-        return get<SOP[]>(KEYS.SOPS, []);
+        return apiCall<SOP[]>('GET', '/api/resources/sops', undefined, KEYS.SOPS, []);
     },
 
     async saveSOP(sop: SOP): Promise<void> {
+        await apiCall('POST', '/api/resources/sops', sop, KEYS.SOPS);
         const items = await this.getSOPs();
         items.unshift(sop);
-        await delay();
         set(KEYS.SOPS, items);
     },
 
     async getJobDescriptions(): Promise<JobDescription[]> {
-        await delay();
-        return get<JobDescription[]>(KEYS.JOB_DESCRIPTIONS, []);
+        return apiCall<JobDescription[]>('GET', '/api/resources/job-descriptions', undefined, KEYS.JOB_DESCRIPTIONS, []);
     },
 
     async saveJobDescription(jd: JobDescription): Promise<void> {
+        await apiCall('POST', '/api/resources/job-descriptions', jd, KEYS.JOB_DESCRIPTIONS);
         const items = await this.getJobDescriptions();
         items.unshift(jd);
-        await delay();
         set(KEYS.JOB_DESCRIPTIONS, items);
     },
 
     async getInterviewGuides(): Promise<InterviewGuide[]> {
-        await delay();
-        return get<InterviewGuide[]>(KEYS.INTERVIEW_GUIDES, []);
+        return apiCall<InterviewGuide[]>('GET', '/api/resources/interview-guides', undefined, KEYS.INTERVIEW_GUIDES, []);
     },
 
     async saveInterviewGuide(guide: InterviewGuide): Promise<void> {
+        await apiCall('POST', '/api/resources/interview-guides', guide, KEYS.INTERVIEW_GUIDES);
         const items = await this.getInterviewGuides();
         items.unshift(guide);
-        await delay();
         set(KEYS.INTERVIEW_GUIDES, items);
     },
 
     // --- Product Specs ---
     async getProductSpecs(): Promise<ProductSpec[]> {
-        await delay();
-        return get<ProductSpec[]>(KEYS.PRODUCT_SPECS, []);
+        return apiCall<ProductSpec[]>('GET', '/api/resources/product-specs', undefined, KEYS.PRODUCT_SPECS, []);
     },
 
     async saveProductSpec(spec: ProductSpec): Promise<void> {
+        await apiCall('POST', '/api/resources/product-specs', spec, KEYS.PRODUCT_SPECS);
         const items = await this.getProductSpecs();
         items.unshift(spec);
-        await delay();
         set(KEYS.PRODUCT_SPECS, items);
     },
 
     async saveProductSpecs(specs: ProductSpec[]): Promise<void> {
-        await delay();
-        set(KEYS.PRODUCT_SPECS, specs);
+        // Batch save not supported by generic CRUD yet, loop for now or add batch endpoint
+        // For now, just save one by one or assume this is rarely used
+        for (const spec of specs) {
+            await this.saveProductSpec(spec);
+        }
     },
 
     // --- Pivot Analyses ---
     async getPivotAnalyses(): Promise<PivotAnalysis[]> {
-        await delay();
-        return get<PivotAnalysis[]>(KEYS.PIVOT_ANALYSES, []);
+        return apiCall<PivotAnalysis[]>('GET', '/api/resources/pivot-analyses', undefined, KEYS.PIVOT_ANALYSES, []);
     },
 
     async savePivotAnalysis(analysis: PivotAnalysis): Promise<void> {
+        await apiCall('POST', '/api/resources/pivot-analyses', analysis, KEYS.PIVOT_ANALYSES);
         const items = await this.getPivotAnalyses();
         items.unshift(analysis);
-        await delay();
         set(KEYS.PIVOT_ANALYSES, items);
     },
 
     // --- Board Reports ---
     async getBoardReports(): Promise<BoardMeetingReport[]> {
-        await delay();
-        return get<BoardMeetingReport[]>(KEYS.BOARD_REPORTS, []);
+        return apiCall<BoardMeetingReport[]>('GET', '/api/resources/board-reports', undefined, KEYS.BOARD_REPORTS, []);
     },
 
     async saveBoardReport(report: BoardMeetingReport): Promise<void> {
+        await apiCall('POST', '/api/resources/board-reports', report, KEYS.BOARD_REPORTS);
         const items = await this.getBoardReports();
         items.unshift(report);
-        await delay();
         set(KEYS.BOARD_REPORTS, items);
     },
 
     // --- Code Snippets ---
     async getCodeSnippets(): Promise<SavedCodeSnippet[]> {
-        await delay();
-        return get<SavedCodeSnippet[]>(KEYS.CODE_SNIPPETS, []);
+        return apiCall<SavedCodeSnippet[]>('GET', '/api/resources/snippets', undefined, KEYS.CODE_SNIPPETS, []);
     },
 
     async saveCodeSnippet(snippet: SavedCodeSnippet): Promise<void> {
+        await apiCall('POST', '/api/resources/snippets', snippet, KEYS.CODE_SNIPPETS);
         const items = await this.getCodeSnippets();
         items.unshift(snippet);
-        await delay();
         set(KEYS.CODE_SNIPPETS, items);
     },
 
     // --- War Room ---
     async getWarRoomSessions(): Promise<SavedWarRoomSession[]> {
-        await delay();
-        return get<SavedWarRoomSession[]>(KEYS.WAR_ROOM_SESSIONS, []);
+        return apiCall<SavedWarRoomSession[]>('GET', '/api/resources/war-room', undefined, KEYS.WAR_ROOM_SESSIONS, []);
     },
 
     async saveWarRoomSession(session: SavedWarRoomSession): Promise<void> {
+        await apiCall('POST', '/api/resources/war-room', session, KEYS.WAR_ROOM_SESSIONS);
         const items = await this.getWarRoomSessions();
         items.unshift(session);
-        await delay();
         set(KEYS.WAR_ROOM_SESSIONS, items);
     },
 
     // --- Legal Docs ---
     async getLegalDocs(): Promise<any[]> {
-        await delay();
-        return get<any[]>(KEYS.LEGAL_DOCS, []);
+        return apiCall<any[]>('GET', '/api/resources/legal-docs', undefined, KEYS.LEGAL_DOCS, []);
     },
 
     async saveLegalDoc(doc: any): Promise<void> {
+        await apiCall('POST', '/api/resources/legal-docs', doc, KEYS.LEGAL_DOCS);
         const items = await this.getLegalDocs();
         items.unshift(doc);
-        await delay();
         set(KEYS.LEGAL_DOCS, items);
     },
 
     // --- Training History ---
     async getTrainingHistory(): Promise<RoleplayFeedback[]> {
-        await delay();
-        return get<RoleplayFeedback[]>(KEYS.TRAINING_HISTORY, []);
+        return apiCall<RoleplayFeedback[]>('GET', '/api/resources/training', undefined, KEYS.TRAINING_HISTORY, []);
     },
 
     async saveTrainingResult(result: RoleplayFeedback): Promise<void> {
+        await apiCall('POST', '/api/resources/training', result, KEYS.TRAINING_HISTORY);
         const items = await this.getTrainingHistory();
         items.unshift(result);
-        await delay();
         set(KEYS.TRAINING_HISTORY, items);
     },
 
     // --- System Instructions ---
     async getSystemInstructions(agentId: string): Promise<string | null> {
-        await delay();
-        return get<string | null>(`solo_agent_prompt_${agentId}`, null);
+        // Fetch from agent-instructions table
+        try {
+            const instructions = await apiCall<any[]>('GET', '/api/resources/agent-instructions', undefined, `solo_agent_prompt_${agentId}`, []);
+            const agentInstruction = instructions.find((i: any) => i.agentId === agentId);
+            return agentInstruction ? agentInstruction.instruction : null;
+        } catch (e) {
+            return null;
+        }
     },
 
     // --- System Management ---
@@ -481,28 +488,171 @@ export const storageService = {
 
     // --- Campaigns (The Amplifier) ---
     async getCampaigns(): Promise<ContentAmplification[]> {
-        await delay();
-        return get<ContentAmplification[]>('solo_campaigns', []);
+        return apiCall<ContentAmplification[]>('GET', '/api/resources/campaigns', undefined, 'solo_campaigns', []);
     },
 
     async saveCampaign(campaign: ContentAmplification): Promise<void> {
+        await apiCall('POST', '/api/resources/campaigns', campaign, 'solo_campaigns');
         const items = await this.getCampaigns();
         items.unshift(campaign);
-        await delay();
         set('solo_campaigns', items);
     },
 
     // --- Simulations (The Simulator) ---
     async getSimulations(): Promise<SimulationResult[]> {
-        await delay();
-        return get<SimulationResult[]>('solo_simulations', []);
+        return apiCall<SimulationResult[]>('GET', '/api/resources/simulations', undefined, 'solo_simulations', []);
     },
 
     async saveSimulation(simulation: SimulationResult): Promise<void> {
+        await apiCall('POST', '/api/resources/simulations', simulation, 'solo_simulations');
         const items = await this.getSimulations();
         items.unshift(simulation);
-        await delay();
         set('solo_simulations', items);
+    },
+
+    // --- Migration ---
+    async migrateLocalToBackend(): Promise<void> {
+        if (!USE_BACKEND) {
+            console.log('Migration skipped: Backend not enabled');
+            return;
+        }
+
+        console.log('Starting migration to backend...');
+
+        // Progress
+        const progress = get<UserProgress | null>(KEYS.PROGRESS, null);
+        if (progress) {
+            console.log('Migrating Progress...');
+            await this.saveUserProgress(progress);
+        }
+
+        // Tasks
+        const tasks = get<Task[]>(KEYS.TASKS, []);
+        if (tasks.length) {
+            console.log(`Migrating ${tasks.length} Tasks...`);
+            await this.saveTasks(tasks);
+        }
+
+        // Context
+        const context = get<BusinessContext | null>(KEYS.CONTEXT, null);
+        if (context) {
+            console.log('Migrating Context...');
+            await this.saveContext(context);
+        }
+
+        // Competitor Reports
+        const reports = get<CompetitorReport[]>(KEYS.REPORTS, []);
+        if (reports.length) {
+            console.log(`Migrating ${reports.length} Reports...`);
+            for (const r of reports) await this.saveCompetitorReport(r);
+        }
+
+        // Pitch Decks
+        const decks = get<PitchDeck[]>(KEYS.PITCH_DECKS, []);
+        if (decks.length) {
+            console.log(`Migrating ${decks.length} Pitch Decks...`);
+            for (const d of decks) await this.savePitchDeck(d);
+        }
+
+        // Creative Assets
+        const assets = get<CreativeAsset[]>(KEYS.CREATIVE_ASSETS, []);
+        if (assets.length) {
+            console.log(`Migrating ${assets.length} Assets...`);
+            for (const a of assets) await this.saveCreativeAsset(a);
+        }
+
+        // Contacts
+        const contacts = get<Contact[]>(KEYS.CONTACTS, []);
+        if (contacts.length) {
+            console.log(`Migrating ${contacts.length} Contacts...`);
+            for (const c of contacts) await this.saveContact(c);
+        }
+
+        // Launch Strategies
+        const launches = get<LaunchStrategy[]>(KEYS.LAUNCH_STRATEGIES, []);
+        if (launches.length) {
+            console.log(`Migrating ${launches.length} Launch Strategies...`);
+            for (const l of launches) await this.saveLaunchStrategy(l);
+        }
+
+        // Tribe Blueprints
+        const tribes = get<TribeBlueprint[]>(KEYS.TRIBE_BLUEPRINTS, []);
+        if (tribes.length) {
+            console.log(`Migrating ${tribes.length} Tribe Blueprints...`);
+            for (const t of tribes) await this.saveTribeBlueprint(t);
+        }
+
+        // SOPs
+        const sops = get<SOP[]>(KEYS.SOPS, []);
+        if (sops.length) {
+            console.log(`Migrating ${sops.length} SOPs...`);
+            for (const s of sops) await this.saveSOP(s);
+        }
+
+        // Job Descriptions
+        const jds = get<JobDescription[]>(KEYS.JOB_DESCRIPTIONS, []);
+        if (jds.length) {
+            console.log(`Migrating ${jds.length} JDs...`);
+            for (const j of jds) await this.saveJobDescription(j);
+        }
+
+        // Interview Guides
+        const guides = get<InterviewGuide[]>(KEYS.INTERVIEW_GUIDES, []);
+        if (guides.length) {
+            console.log(`Migrating ${guides.length} Interview Guides...`);
+            for (const g of guides) await this.saveInterviewGuide(g);
+        }
+
+        // Product Specs
+        const specs = get<ProductSpec[]>(KEYS.PRODUCT_SPECS, []);
+        if (specs.length) {
+            console.log(`Migrating ${specs.length} Product Specs...`);
+            for (const s of specs) await this.saveProductSpec(s);
+        }
+
+        // Pivot Analyses
+        const pivots = get<PivotAnalysis[]>(KEYS.PIVOT_ANALYSES, []);
+        if (pivots.length) {
+            console.log(`Migrating ${pivots.length} Pivot Analyses...`);
+            for (const p of pivots) await this.savePivotAnalysis(p);
+        }
+
+        // Board Reports
+        const boardReports = get<BoardMeetingReport[]>(KEYS.BOARD_REPORTS, []);
+        if (boardReports.length) {
+            console.log(`Migrating ${boardReports.length} Board Reports...`);
+            for (const b of boardReports) await this.saveBoardReport(b);
+        }
+
+        // Code Snippets
+        const snippets = get<SavedCodeSnippet[]>(KEYS.CODE_SNIPPETS, []);
+        if (snippets.length) {
+            console.log(`Migrating ${snippets.length} Snippets...`);
+            for (const s of snippets) await this.saveCodeSnippet(s);
+        }
+
+        // War Room
+        const warRooms = get<SavedWarRoomSession[]>(KEYS.WAR_ROOM_SESSIONS, []);
+        if (warRooms.length) {
+            console.log(`Migrating ${warRooms.length} War Room Sessions...`);
+            for (const w of warRooms) await this.saveWarRoomSession(w);
+        }
+
+        // Legal Docs
+        const legalDocs = get<any[]>(KEYS.LEGAL_DOCS, []);
+        if (legalDocs.length) {
+            console.log(`Migrating ${legalDocs.length} Legal Docs...`);
+            for (const l of legalDocs) await this.saveLegalDoc(l);
+        }
+
+        // Training History
+        const training = get<RoleplayFeedback[]>(KEYS.TRAINING_HISTORY, []);
+        if (training.length) {
+            console.log(`Migrating ${training.length} Training Records...`);
+            for (const t of training) await this.saveTrainingResult(t);
+        }
+
+        console.log('Migration Complete!');
     }
 };
 

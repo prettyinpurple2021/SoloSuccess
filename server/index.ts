@@ -108,10 +108,20 @@ function broadcastToUser(userId: string, event: string, data: any) {
 
 // --- Routes ---
 
+import resourcesRouter from './routes/resources';
+
+// ... (imports)
+
+import aiRouter from './routes/ai';
+
+// ... (imports)
+
 app.use('/api/admin', adminRouter);
 app.use('/api/contacts', contactsRouter);
 app.use('/api/pitch-decks', pitchDecksRouter);
 app.use('/api/stripe', stripeRouter);
+app.use('/api/resources', resourcesRouter);
+app.use('/api/ai', aiRouter);
 
 // Auth Routes
 app.post('/api/auth/signup', async (req: Request, res: Response) => {

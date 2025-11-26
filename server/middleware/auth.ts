@@ -6,7 +6,7 @@ export type AuthRequest = Omit<Request, 'userId'> & {
     userEmail?: string;
 };
 
-export function authMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
+export function authMiddleware(req: Request, res: Response, next: NextFunction) {
     // Get token from Authorization header or cookie
     const authHeader = req.headers.authorization;
     const token = authHeader?.startsWith('Bearer ')
@@ -23,8 +23,8 @@ export function authMiddleware(req: AuthRequest, res: Response, next: NextFuncti
     }
 
     // Attach user info to request
-    req.userId = decoded.userId;
-    req.userEmail = decoded.email;
+    (req as AuthRequest).userId = decoded.userId;
+    (req as AuthRequest).userEmail = decoded.email;
 
     next();
 }

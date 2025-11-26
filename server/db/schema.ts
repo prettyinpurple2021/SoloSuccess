@@ -206,3 +206,189 @@ export const pitchDecks = pgTable('pitch_decks', {
     generatedAt: timestamp('generated_at').notNull(),
     updatedAt: timestamp('updated_at').defaultNow(),
 });
+
+// ========================================
+// WAR ROOM
+// ========================================
+
+export const warRoomSessions = pgTable('war_room_sessions', {
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    topic: text('topic').notNull(),
+    dialogue: jsonb('dialogue').notNull(), // Array of dialogue objects
+    consensus: text('consensus'),
+    actionPlan: text('action_plan').array(),
+    timestamp: timestamp('timestamp').defaultNow(),
+    createdAt: timestamp('created_at').defaultNow(),
+});
+
+// ========================================
+// OPS & HR (SOPs, JDs, Interviews)
+// ========================================
+
+export const sops = pgTable('sops', {
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    taskName: text('task_name').notNull(),
+    goal: text('goal'),
+    steps: jsonb('steps').notNull(),
+    definitionOfDone: text('definition_of_done').array(),
+    generatedAt: timestamp('generated_at').defaultNow(),
+});
+
+export const jobDescriptions = pgTable('job_descriptions', {
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    roleTitle: text('role_title').notNull(),
+    hook: text('hook'),
+    responsibilities: text('responsibilities').array(),
+    requirements: text('requirements').array(),
+    perks: text('perks').array(),
+    generatedAt: timestamp('generated_at').defaultNow(),
+});
+
+export const interviewGuides = pgTable('interview_guides', {
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    roleTitle: text('role_title').notNull(),
+    questions: jsonb('questions').notNull(),
+    generatedAt: timestamp('generated_at').defaultNow(),
+});
+
+// ========================================
+// PRODUCT & STRATEGY
+// ========================================
+
+export const productSpecs = pgTable('product_specs', {
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    featureName: text('feature_name').notNull(),
+    summary: text('summary'),
+    features: jsonb('features'),
+    dataModel: text('data_model').array(),
+    generatedAt: timestamp('generated_at').defaultNow(),
+});
+
+export const pivotAnalyses = pgTable('pivot_analyses', {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    currentIndustry: text('current_industry'),
+    gaps: jsonb('gaps'), // Array of gap objects
+    generatedAt: timestamp('generated_at').defaultNow(),
+});
+
+export const launchStrategies = pgTable('launch_strategies', {
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    productName: text('product_name').notNull(),
+    launchDate: text('launch_date'),
+    phases: jsonb('phases'),
+    generatedAt: timestamp('generated_at').defaultNow(),
+});
+
+export const tribeBlueprints = pgTable('tribe_blueprints', {
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    manifesto: jsonb('manifesto'),
+    rituals: jsonb('rituals'),
+    engagementLoops: text('engagement_loops').array(),
+    generatedAt: timestamp('generated_at').defaultNow(),
+});
+
+// ========================================
+// LEGAL & COMPLIANCE
+// ========================================
+
+export const legalDocs = pgTable('legal_docs', {
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    type: text('type').notNull(), // 'contract' | 'policy' | 'terms'
+    content: text('content').notNull(),
+    generatedAt: timestamp('generated_at').defaultNow(),
+});
+
+// ========================================
+// TRAINING & SIMULATION
+// ========================================
+
+export const trainingHistory = pgTable('training_history', {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    scenarioTitle: text('scenario_title'),
+    score: integer('score'),
+    strengths: text('strengths').array(),
+    weaknesses: text('weaknesses').array(),
+    proTip: text('pro_tip'),
+    timestamp: timestamp('timestamp').defaultNow(),
+});
+
+export const simulations = pgTable('simulations', {
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    query: text('query').notNull(),
+    likelyCase: jsonb('likely_case'),
+    bestCase: jsonb('best_case'),
+    worstCase: jsonb('worst_case'),
+    strategicAdvice: text('strategic_advice'),
+    timestamp: timestamp('timestamp').defaultNow(),
+});
+
+// ========================================
+// MARKETING & ASSETS
+// ========================================
+
+export const campaigns = pgTable('campaigns', {
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    sourceTitle: text('source_title'),
+    twitterThread: text('twitter_thread').array(),
+    linkedinPost: text('linkedin_post'),
+    tiktokScript: text('tiktok_script'),
+    newsletterSection: text('newsletter_section'),
+    generatedAt: timestamp('generated_at').defaultNow(),
+});
+
+export const creativeAssets = pgTable('creative_assets', {
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    type: text('type').notNull(), // 'image' | 'copy' | 'video_script'
+    title: text('title'),
+    content: text('content'), // URL for images, text for copy
+    prompt: text('prompt'),
+    style: text('style'),
+    generatedAt: timestamp('generated_at').defaultNow(),
+});
+
+// ========================================
+// DEV TOOLS
+// ========================================
+
+export const codeSnippets = pgTable('code_snippets', {
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    title: text('title'),
+    language: text('language'),
+    code: text('code'),
+    explanation: text('explanation'),
+    generatedAt: timestamp('generated_at').defaultNow(),
+});
+
+export const boardReports = pgTable('board_reports', {
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    date: text('date'),
+    ceoScore: integer('ceo_score'),
+    executiveSummary: text('executive_summary'),
+    consensus: text('consensus'),
+    grades: jsonb('grades'),
+    generatedAt: timestamp('generated_at').defaultNow(),
+});
+
+export const agentInstructions = pgTable('agent_instructions', {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    agentId: text('agent_id').notNull(),
+    instruction: text('instruction').notNull(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+});
