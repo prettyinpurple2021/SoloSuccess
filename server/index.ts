@@ -219,14 +219,16 @@ app.post('/api/generate', async (req: Request, res: Response) => {
     }
 });
 
-// Root route for developer convenience
-app.get('/', (req: Request, res: Response) => {
-    res.send(`
-        <h1>SoloSuccess AI Backend is Running 🚀</h1>
-        <p>You are currently accessing the backend API server.</p>
-        <p>Please visit the frontend application at: <a href="${process.env.CLIENT_URL || 'http://localhost:3001'}">${process.env.CLIENT_URL || 'http://localhost:3001'}</a></p>
-    `);
-});
+// Root route for developer convenience (Development only)
+if (process.env.NODE_ENV !== 'production') {
+    app.get('/', (req: Request, res: Response) => {
+        res.send(`
+            <h1>SoloSuccess AI Backend is Running 🚀</h1>
+            <p>You are currently accessing the backend API server.</p>
+            <p>Please visit the frontend application at: <a href="${process.env.CLIENT_URL || 'http://localhost:3001'}">${process.env.CLIENT_URL || 'http://localhost:3001'}</a></p>
+        `);
+    });
+}
 
 // Health Check
 app.get('/api/health', (req: Request, res: Response) => {
