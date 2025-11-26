@@ -23,7 +23,8 @@ export function UserTable() {
     const fetchUsers = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:3000/api/admin/users', {
+            const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
+            const res = await fetch(`${API_URL}/api/admin/users`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -40,7 +41,8 @@ export function UserTable() {
 
         try {
             const token = localStorage.getItem('token');
-            await fetch(`http://localhost:3000/api/admin/users/${userId}/suspend`, {
+            const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
+            await fetch(`${API_URL}/api/admin/users/${userId}/suspend`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -105,8 +107,8 @@ export function UserTable() {
                                 </td>
                                 <td className="px-6 py-4">
                                     <span className={`px-2 py-1 rounded-full text-xs border ${user.role === 'admin'
-                                            ? 'bg-purple-500/10 text-purple-500 border-purple-500/20'
-                                            : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
+                                        ? 'bg-purple-500/10 text-purple-500 border-purple-500/20'
+                                        : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
                                         }`}>
                                         {user.role}
                                     </span>

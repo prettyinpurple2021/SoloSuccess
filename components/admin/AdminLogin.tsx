@@ -15,7 +15,8 @@ export function AdminLogin() {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:3000/api/admin/verify-pin', {
+            const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
+            const res = await fetch(`${API_URL}/api/admin/verify-pin`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
