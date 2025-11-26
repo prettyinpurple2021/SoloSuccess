@@ -15,6 +15,7 @@ import { authMiddleware, AuthRequest } from './middleware/auth';
 import adminRouter from './routes/admin';
 import contactsRouter from './routes/contacts';
 import pitchDecksRouter from './routes/pitchDecks';
+import stripeRouter from './routes/stripe';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
 
@@ -110,6 +111,7 @@ function broadcastToUser(userId: string, event: string, data: any) {
 app.use('/api/admin', adminRouter);
 app.use('/api/contacts', contactsRouter);
 app.use('/api/pitch-decks', pitchDecksRouter);
+app.use('/api/stripe', stripeRouter);
 
 // Auth Routes
 app.post('/api/auth/signup', async (req: Request, res: Response) => {
