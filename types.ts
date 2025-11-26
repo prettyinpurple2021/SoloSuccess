@@ -21,6 +21,18 @@ export interface ChatMessage {
     timestamp?: number;
 }
 
+export interface BusinessContext {
+    id?: string;
+    userId?: string;
+    founderName: string;
+    companyName: string;
+    industry: string;
+    description: string;
+    goals: string[];
+    brandDna?: BrandDNA;
+    updatedAt?: string;
+}
+
 export type TaskStatus = 'backlog' | 'todo' | 'in-progress' | 'done';
 
 export interface Task {
@@ -327,6 +339,7 @@ export interface UserProgress {
 export interface WarRoomEntry {
     speaker: AgentId;
     text: string;
+    timestamp?: number;
 }
 
 export interface WarRoomResponse {

@@ -333,6 +333,11 @@ function App() {
           <AdminDashboard />
         </AuthGate>
       } />
+      <Route path="/app/onboarding" element={
+        <AuthGate>
+          <SystemBoot onComplete={() => window.location.href = '/app'} />
+        </AuthGate>
+      } />
       <Route path="/app/*" element={
         <AuthGate>
           <DashboardLayout />

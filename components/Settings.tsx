@@ -252,6 +252,16 @@ export const Settings: React.FC = () => {
                                 <Trash2 size={14} /> Wipe System
                             </button>
                         </div>
+
+                        {/* Replay Onboarding */}
+                        <div className="mt-4 flex justify-end">
+                            <button
+                                onClick={() => navigate('/app/onboarding')}
+                                className="text-zinc-500 hover:text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors"
+                            >
+                                <RefreshCcw size={14} /> Replay Onboarding
+                            </button>
+                        </div>
                     </div>
                 </div>
 
