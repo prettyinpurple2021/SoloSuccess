@@ -1,7 +1,7 @@
 import express from 'express';
 import { stripe, PRICE_IDS } from '../stripe';
 import { db } from '../db';
-import { subscriptions, users } from '../db/schema';
+import { subscriptions, users, usageTracking } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
 const router = express.Router();
@@ -69,6 +69,69 @@ router.get('/subscription', async (req, res) => {
     } catch (error) {
         console.error('Error fetching subscription:', error);
         res.status(500).json({ error: 'Failed to fetch subscription' });
+    }
+});
+
+// Get Usage Statistics
+router.get('/usage', async (req, res) => {
+    try {
+        const userId = req.headers['x-user-id'] || req.query.userId;
+
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        // Get current month in format YYYY-MM
+        const currentMonth = new Date().toISOString().slice(0, 7);
+
+        const usage = await db.select().from(usageTracking)
+            .where(
+                eq(usageTracking.userId, Number(userId))
+            )
+            .limit(1);
+
+        if (!usage.length) {
+            return res.json({
+                aiGenerations: 0,
+                competitorsTracked: 0,
+                businessProfiles: 1
+            });
+        }
+
+        res.json(usage[0]);
+    } catch (error) {
+        console.error('Error fetching usage:', error);
+        res.status(500).json({ error: 'Failed to fetch usage' });
+    }
+});
+
+// Create Customer Portal Session
+router.post('/customer-portal', async (req, res) => {
+    try {
+        const { userId } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'Missing userId' });
+        }
+
+        // Get customer ID from subscription
+        const sub = await db.select().from(subscriptions)
+            .where(eq(subscriptions.userId, Number(userId)))
+            .limit(1);
+
+        if (!sub.length || !sub[0].stripeCustomerId) {
+            return res.status(404).json({ error: 'No subscription found' });
+        }
+
+        const session = await stripe.billingPortal.sessions.create({
+            customer: sub[0].stripeCustomerId,
+            return_url: `${CLIENT_URL}/app`,
+        });
+
+        res.json({ url: session.url });
+    } catch (error: any) {
+        console.error('Customer Portal Error:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 

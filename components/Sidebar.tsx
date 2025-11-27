@@ -162,7 +162,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 { id: 'uplink', label: 'Voice Uplink', icon: <Mic size={18} className="text-red-500" />, colorClass: 'text-red-400' },
                 { id: 'academy', label: 'The Academy', icon: <GraduationCap size={18} className="text-white" />, colorClass: 'text-white' },
                 { id: 'sanctuary', label: 'The Sanctuary', icon: <Moon size={18} className="text-zinc-300" />, colorClass: 'text-zinc-200' },
-                { id: 'billing', label: 'Billing & Plan', icon: <Coins size={18} className="text-emerald-400" />, colorClass: 'text-emerald-400', onClick: () => navigate('/pricing') },
+                { id: 'billing', label: 'Billing & Plan', icon: <Coins size={18} className="text-emerald-400" />, colorClass: 'text-emerald-400' },
                 { id: 'vault', label: 'The Vault', icon: <Archive size={18} />, colorClass: 'text-white' },
                 ...(isAdmin ? [{
                     id: 'admin-dashboard',

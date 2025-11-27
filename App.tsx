@@ -9,6 +9,7 @@ import { IdeaIncinerator } from './components/IdeaIncinerator';
 import { TacticalRoadmap } from './components/TacticalRoadmap';
 import { storageService } from './services/storageService';
 import { Treasury } from './components/Treasury';
+import { Billing } from './components/Billing';
 import { SystemBoot } from './components/SystemBoot';
 import { CommandPalette } from './components/CommandPalette';
 import { Settings } from './components/Settings';
@@ -246,6 +247,8 @@ function DashboardLayout() {
         return <TheLaunchpad />;
       case 'scout':
         return <TheScout />;
+      case 'billing':
+        return <Billing />;
       case 'settings':
         return <Settings />;
       case 'chat':
