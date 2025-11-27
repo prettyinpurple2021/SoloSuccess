@@ -31,6 +31,12 @@ export const SystemBoot: React.FC<SystemBootProps> = ({ onComplete }) => {
                         goals: context.goals && context.goals.length > 0 ? context.goals : ['', '', ''],
                         brandDna: { ...prev.brandDna, ...context.brandDna }
                     }));
+
+                    // If we have saved data (founder name or company name), skip the boot animation
+                    // This improves the experience when resuming from "Save and Exit"
+                    if (context.founderName || context.companyName) {
+                        setStep(1);
+                    }
                 }
             } catch (e) {
                 console.error("Failed to load saved progress", e);

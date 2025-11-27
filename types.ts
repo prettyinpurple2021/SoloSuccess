@@ -305,13 +305,6 @@ export interface InterviewGuide {
     updatedAt: string;
 }
 
-export interface BrandDNA {
-    voice: string;
-    values: string[];
-    aesthetic: string;
-    mission: string;
-}
-
 export interface CompetitorReport {
     id: string;
     competitorName: string;
