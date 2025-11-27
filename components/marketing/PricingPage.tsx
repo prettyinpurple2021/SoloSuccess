@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { MarketingLayout } from './layout/MarketingLayout';
 import { Check, Loader2 } from 'lucide-react';
-import { useUser } from '@stackframe/stack';
+// import { useUser } from '@stackframe/stack';
 import { apiService } from '../../services/apiService';
 
 export function PricingPage() {
-    const user = useUser();
+    const user = null; // useUser();
     const [loadingTier, setLoadingTier] = useState<string | null>(null);
 
     const handleUpgrade = async (tier: string, priceId: string) => {
@@ -177,10 +177,10 @@ function PricingCard({ title, price, period, description, features, isPopular, o
                 onClick={onUpgrade}
                 disabled={disabled || isLoading}
                 className={`w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${disabled
-                        ? 'bg-white/5 text-zinc-500 cursor-not-allowed'
-                        : isPopular
-                            ? 'bg-emerald-500 text-black hover:bg-emerald-400 shadow-lg shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98]'
-                            : 'bg-white text-black hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98]'
+                    ? 'bg-white/5 text-zinc-500 cursor-not-allowed'
+                    : isPopular
+                        ? 'bg-emerald-500 text-black hover:bg-emerald-400 shadow-lg shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98]'
+                        : 'bg-white text-black hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98]'
                     }`}
             >
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (buttonText || `Choose ${title}`)}
