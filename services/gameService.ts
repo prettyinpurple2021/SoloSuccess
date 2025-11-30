@@ -82,7 +82,8 @@ export const showToast = (title: string, message: string, type: 'success' | 'err
         title,
         message,
         type,
-        xpAmount
+        xpAmount,
+        newProgress
     };
     listeners.forEach(l => l(toast));
 };

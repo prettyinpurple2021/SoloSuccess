@@ -30,16 +30,50 @@ export interface BrandDNA {
     [key: string]: any;
 }
 
-export interface BusinessContext {
-    id?: string;
-    userId?: string;
-    founderName: string;
-    companyName: string;
-    industry: string;
-    description: string;
+export interface TargetPersona {
+    id: string;
+    name: string;
+    role: string;
+    description: string; // Added description
+    painPoints: string[];
     goals: string[];
+}
+
+export interface IncineratorResponse {
+    roastSummary: string; // Added roastSummary
+    survivalScore: number; // Renamed/Added survivalScore
+    verdict: string;
+    feedback: string[];
+    improvements: string[];
+    rewrittenContent?: string;
+}
+
+export interface BusinessContext {
+    companyName: string;
+    founderName: string;
+    industry: string;
+    targetAudience?: string; // Made optional
+    mission?: string; // Made optional
+    description: string;
+    values?: string[]; // Made optional
+    goals: string[];
+    currentCash?: number;
+    monthlyBurn?: number;
+    monthlyRevenue?: number;
+    growthRate?: number;
     brandDna?: BrandDNA;
-    updatedAt?: string;
+}
+
+// ...
+
+export interface CommunityManifesto {
+    title: string;
+    values: string[];
+    missionStatement: string;
+    belief: string;
+    tagline: string;
+    enemy: string; // Added enemy
+    rituals: string[];
 }
 
 export type TaskStatus = 'backlog' | 'todo' | 'in-progress' | 'done';
@@ -120,10 +154,24 @@ export interface NegotiationPrep {
 }
 
 // THE MATRIX (TECH STACK)
+// THE MATRIX (TECH STACK)
 export interface TechStackAudit {
     score: number;
+    verdict: string;
+    pros: string[];
+    cons: string[];
+    recommendations: string[];
     timestamp: string;
 }
+
+export interface CodeSnippet {
+    language: string;
+    code: string;
+    explanation: string;
+}
+
+// ... (other types)
+
 
 // THE SIMULATOR (SCENARIO PLANNING)
 export interface SimulationResult {
@@ -249,37 +297,99 @@ export interface CommunityManifesto {
     title: string;
     values: string[];
     missionStatement: string;
+    belief: string; // Added belief
+    tagline: string; // Added tagline
     rituals: string[];
 }
+
+export interface Ritual {
+    name: string;
+    frequency: string;
+    description: string;
+    action: string;
+}
+
+export interface EngagementLoop {
+    name: string;
+    trigger: string;
+    action: string;
+    reward: string;
+}
+
 
 export interface TribeBlueprint {
     id: string;
     targetAudience: string;
     platform: string;
     manifesto: CommunityManifesto;
+    rituals: Ritual[];
+    engagementLoops: EngagementLoop[];
     growthTactics: string[];
     generatedAt: string;
+}
+
+// ... (other types)
+
+export interface LaunchEvent {
+    title: string;
+    description: string;
+    day: string;
+    owner: string;
+    channel: string;
+}
+
+export interface LaunchStrategy {
+    id: string;
+    productName: string;
+    phases: {
+        name: string;
+        duration: string;
+        events: LaunchEvent[];
+    }[];
+    channels: string[];
+    generatedAt: string;
+    launchDate: string; // Added launchDate as TheLaunchpad uses it
+}
+
+// ... (other types)
+
+export interface CreativeAsset {
+    id: string;
+    title: string;
+    prompt: string;
+    style?: string;
+    type: 'image' | 'video' | 'copy' | 'social';
+    content: string;
+    platform?: string;
+    generatedAt: string;
+    imageBase64?: string; // Added imageBase64 as TheStudio uses it
 }
 
 // THE AMPLIFIER (MARKETING)
 export interface ContentAmplification {
     id: string;
+    sourceTitle: string;
     originalContent: string;
-    channels: {
-        twitter: string;
-        linkedin: string;
-        newsletter: string;
-    };
-    viralHooks: string[];
+    twitterThread: string[];
+    linkedinPost: string;
+    tiktokScript: string;
+    newsletterSection: string;
     generatedAt: string;
 }
 
 // THE SYSTEM (SOPs)
+export interface SOPStep {
+    step: number;
+    action: string;
+    details: string;
+}
+
 export interface SOP {
     id: string;
-    title: string;
-    trigger: string;
-    steps: string[];
+    taskName: string;
+    goal: string;
+    steps: SOPStep[];
+    successCriteria: string;
     tools: string[];
     generatedAt: string;
 }
@@ -288,16 +398,24 @@ export interface SOP {
 export interface JobDescription {
     id: string;
     roleTitle: string;
+    hook: string;
     responsibilities: string[];
     requirements: string[];
+    perks: string[];
     cultureFit: string;
     generatedAt: string;
+}
+
+export interface InterviewQuestion {
+    question: string;
+    whatToLookFor: string;
+    redFlag: string;
 }
 
 export interface InterviewGuide {
     id: string;
     roleTitle: string;
-    questions: string[];
+    questions: InterviewQuestion[];
     founderName: string;
     industry: string;
     description: string;
@@ -309,12 +427,27 @@ export interface CompetitorReport {
     id: string;
     competitorName: string;
     url: string;
+    missionBrief: string;
     strengths: string[];
-    weaknesses: string[];
-    pricingModel: string;
-    marketingChannels: string[];
+    vulnerabilities: string[];
+    metrics: {
+        innovation: number;
+        marketPresence: number;
+        ux: number;
+        pricing: number;
+        velocity: number;
+    };
+    intel: string[];
     threatLevel: 'Low' | 'Medium' | 'High' | 'Critical';
     generatedAt: string;
+}
+
+export interface LaunchEvent {
+    title: string;
+    description: string;
+    day: string;
+    owner: string;
+    channel: string;
 }
 
 export interface LaunchStrategy {
@@ -323,10 +456,25 @@ export interface LaunchStrategy {
     phases: {
         name: string;
         duration: string;
-        actions: string[];
+        events: LaunchEvent[];
     }[];
     channels: string[];
     generatedAt: string;
+    launchDate: string;
+}
+
+// ...
+
+export interface CreativeAsset {
+    id: string;
+    title: string;
+    prompt: string;
+    style?: string;
+    type: 'image' | 'video' | 'copy' | 'social';
+    content: string;
+    platform?: string;
+    generatedAt: string;
+    imageBase64?: string;
 }
 
 export interface UserProgress {
@@ -354,4 +502,47 @@ export interface SavedWarRoomSession extends WarRoomResponse {
     id: string;
     topic: string;
     timestamp: string;
+}
+
+export interface SavedCodeSnippet {
+    id: string;
+    title: string;
+    language: string;
+    code: string;
+    description?: string;
+    timestamp: string;
+}
+
+export interface CreativeAsset {
+    id: string;
+    title: string;
+    prompt: string;
+    style?: string;
+    type: 'image' | 'video' | 'copy' | 'social';
+    content: string;
+    platform?: string;
+    generatedAt: string;
+    imageBase64?: string;
+}
+
+export interface SocialStrategy {
+    pillars: {
+        title: string;
+        description: string;
+    }[];
+    cadence: string;
+    personaTactics: {
+        persona: string;
+        tactic: string;
+    }[];
+    sampleHooks: string[];
+}
+
+export interface ToastMessage {
+    id: string;
+    title: string;
+    message: string;
+    type: 'success' | 'error' | 'info' | 'xp';
+    xpAmount?: number;
+    newProgress?: UserProgress;
 }

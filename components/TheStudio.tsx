@@ -22,6 +22,7 @@ export const TheStudio: React.FC = () => {
     const saveToVault = (imageBase64: string) => {
         const newAsset: CreativeAsset = {
             id: `img-${Date.now()}`,
+            title: prompt, // Added title
             prompt: prompt,
             style: selectedStyle.label,
             imageBase64: imageBase64,

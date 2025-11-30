@@ -70,9 +70,12 @@ export const TheCodex: React.FC = () => {
     const addPersona = () => {
         if (!personaName.trim() || !personaDesc.trim()) return;
         const newPersona: TargetPersona = {
+            id: `persona-${Date.now()}`,
             name: personaName,
+            role: 'Target Audience', // Default role
             description: personaDesc,
-            painPoints: []
+            painPoints: [],
+            goals: []
         };
         setDna({ ...dna, personas: [...dna.personas, newPersona] });
         setPersonaName('');

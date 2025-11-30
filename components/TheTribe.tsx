@@ -171,9 +171,14 @@ export const TheTribe: React.FC = () => {
                                 </h3>
                                 <ul className="space-y-3">
                                     {blueprint.engagementLoops.map((loop, i) => (
-                                        <li key={i} className="flex items-start gap-3 text-sm text-zinc-300">
-                                            <span className="text-pink-500 font-bold">0{i + 1}</span>
-                                            {loop}
+                                        <li key={i} className="flex flex-col gap-1 text-sm text-zinc-300">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-pink-500 font-bold">0{i + 1}</span>
+                                                <span className="font-bold text-white">{loop.name}</span>
+                                            </div>
+                                            <div className="pl-6 text-xs text-zinc-500">
+                                                <span className="text-zinc-400">Trigger:</span> {loop.trigger} → <span className="text-zinc-400">Action:</span> {loop.action} → <span className="text-zinc-400">Reward:</span> {loop.reward}
+                                            </div>
                                         </li>
                                     ))}
                                 </ul>

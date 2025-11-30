@@ -297,5 +297,14 @@ export const geminiService = {
             console.error('Product Spec Error:', error);
             return null;
         }
+    },
+
+    async generateContent(prompt: string, options?: any): Promise<any> {
+        try {
+            return await apiService.post('/ai/generate', { prompt, options });
+        } catch (error) {
+            console.error('Generate Content Error:', error);
+            return null;
+        }
     }
 };
