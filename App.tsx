@@ -40,22 +40,15 @@ import { KeyboardShortcutsOverlay } from './components/KeyboardShortcutsOverlay'
 import { AgentId, Task } from './types';
 import { Menu, NotebookPen } from 'lucide-react'
 import { useSwipe } from './hooks/useSwipe';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { LandingPage } from './components/LandingPage';
-import { Login } from './components/auth/Login';
-import { Signup } from './components/auth/Signup';
-import { FeaturesPage } from './components/marketing/FeaturesPage';
-import { ContactPage } from './components/marketing/ContactPage';
-import { PricingPage } from './components/marketing/PricingPage';
-import { AboutPage } from './components/marketing/AboutPage';
-import { PrivacyPolicy } from './components/marketing/PrivacyPolicy';
-import { TermsOfService } from './components/marketing/TermsOfService';
-import { AdminLogin } from './components/admin/AdminLogin';
-import { AdminDashboard } from './components/admin/AdminDashboard';
-
+import { Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+// ... other imports
 
 function DashboardLayout() {
-  const [currentView, setCurrentView] = useState('dashboard');
+  const { viewId } = useParams();
+  const navigate = useNavigate();
+  const currentView = viewId || 'dashboard';
+
   const [activeAgent, setActiveAgent] = useState<AgentId | null>(null);
   const [isBooted, setIsBooted] = useState(false);
   const [checkingBoot, setCheckingBoot] = useState(true);
@@ -137,11 +130,14 @@ function DashboardLayout() {
   });
 
   const handleViewChange = (view: string) => {
+    if (view === currentView) return;
+
     setIsTransitioning(true);
     // Close mobile sidebar when changing views
     setIsMobileSidebarOpen(false);
+
     setTimeout(() => {
-      setCurrentView(view);
+      navigate(`/app/${view}`);
       setIsTransitioning(false);
     }, 150);
   };
@@ -167,7 +163,7 @@ function DashboardLayout() {
     if (activeAgent) {
       setIncomingAgentMessage(text);
       // Ensure we are looking at the chat
-      setCurrentView('chat');
+      navigate('/app/chat');
     }
   };
 
@@ -187,7 +183,16 @@ function DashboardLayout() {
   // Clear incoming message after it's "consumed" by AgentChat
   const clearIncomingMessage = () => setIncomingAgentMessage(null);
 
-  if (checkingBoot) return null;
+  if (checkingBoot) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#050505]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-emerald-500 animate-spin mx-auto mb-4" />
+          <p className="text-zinc-400 font-mono text-sm animate-pulse">INITIALIZING SYSTEM...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isBooted) {
     return (
@@ -200,7 +205,7 @@ function DashboardLayout() {
       case 'dashboard':
         return <Dashboard />;
       case 'stalker':
-        return <CompetitorStalker onNavigate={setCurrentView} />;
+        return <CompetitorStalker onNavigate={handleViewChange} />;
       case 'war-room':
         return <WarRoom />;
       case 'incinerator':
@@ -283,7 +288,7 @@ function DashboardLayout() {
       <CommandPalette
         isOpen={isPaletteOpen}
         setIsOpen={setIsPaletteOpen}
-        setCurrentView={setCurrentView}
+        setCurrentView={handleViewChange}
         setActiveAgent={setActiveAgent}
         onToggleScratchpad={() => setIsScratchpadOpen(prev => !prev)}
       />
@@ -385,7 +390,8 @@ function App() {
           <SystemBoot onComplete={() => window.location.href = '/app'} />
         </AuthGate>
       } />
-      <Route path="/app/*" element={
+      <Route path="/app" element={<Navigate to="/app/dashboard" replace />} />
+      <Route path="/app/:viewId" element={
         <AuthGate>
           <DashboardLayout />
         </AuthGate>
