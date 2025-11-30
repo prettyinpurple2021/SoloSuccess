@@ -42,7 +42,17 @@ import { Menu, NotebookPen } from 'lucide-react'
 import { useSwipe } from './hooks/useSwipe';
 import { Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-// ... other imports
+import { LandingPage } from './components/LandingPage';
+import { Login } from './components/auth/Login';
+import { Signup } from './components/auth/Signup';
+import { FeaturesPage } from './components/marketing/FeaturesPage';
+import { ContactPage } from './components/marketing/ContactPage';
+import { PricingPage } from './components/marketing/PricingPage';
+import { AboutPage } from './components/marketing/AboutPage';
+import { PrivacyPolicy } from './components/marketing/PrivacyPolicy';
+import { TermsOfService } from './components/marketing/TermsOfService';
+import { AdminLogin } from './components/admin/AdminLogin';
+import { AdminDashboard } from './components/admin/AdminDashboard';
 
 function DashboardLayout() {
   const { viewId } = useParams();

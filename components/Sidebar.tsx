@@ -193,9 +193,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     const handleLogout = () => {
         soundService.playClick();
         if (confirm("Reboot System? This will clear your session context.")) {
-
             localStorage.removeItem('solo_business_context');
-            window.location.reload();
+            localStorage.removeItem('token'); // Also clear token
+            localStorage.removeItem('user'); // Also clear user
+            window.location.href = '/login'; // Redirect to login
         }
     }
 
@@ -376,10 +377,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="p-4 border-t border-white/5 shrink-0 bg-black/20">
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-500/10 hover:text-red-400 text-zinc-500 transition-all group"
+                        className="w-full flex items-center justify-center gap-3 px-3 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 text-red-400 transition-all group hover:shadow-lg hover:shadow-red-900/20"
+                        title="System Reboot (Logout)"
                     >
-                        <Power size={16} className="group-hover:rotate-90 transition-transform" />
-                        <span className="text-xs font-medium">System Reboot</span>
+                        <div className="p-1.5 rounded-full bg-red-500/10 group-hover:bg-red-500/20 transition-colors">
+                            <Power size={18} className="group-hover:scale-110 transition-transform" />
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-wider">System Reboot</span>
                     </button>
                 </div>
             </div>

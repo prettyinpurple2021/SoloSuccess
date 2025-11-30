@@ -11,6 +11,13 @@ export function Login() {
         password: ''
     });
 
+    React.useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            navigate('/app/dashboard');
+        }
+    }, [navigate]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
