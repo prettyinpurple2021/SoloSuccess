@@ -24,31 +24,71 @@ export const TheUplink: React.FC = () => {
     const nextStartTimeRef = useRef<number>(0);
     const sessionRef = useRef<any>(null); // Holds the active Gemini session
 
+    // Analyser Refs for Real Visualization
+    const inputAnalyserRef = useRef<AnalyserNode | null>(null);
+    const outputAnalyserRef = useRef<AnalyserNode | null>(null);
+    const animationFrameRef = useRef<number | null>(null);
+
     // Cleanup on unmount
     useEffect(() => {
         return () => {
             disconnect();
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+            }
         };
     }, []);
 
-    // Visualizer Loop
+    // Real Visualizer Loop
     useEffect(() => {
         if (status === 'disconnected') {
             setVolume(0);
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+                animationFrameRef.current = null;
+            }
             return;
         }
 
-        // Simulated visualizer if we don't have easy access to the raw analyser node in this architecture
-        // In a real app, we'd attach an AnalyserNode. For this demo, we'll simulate "activity" based on state.
-        const interval = setInterval(() => {
-            if (status === 'speaking' || status === 'connected') {
-                // Random fluctuation for effect
-                setVolume(Math.random() * 100);
+        const updateVisualizer = () => {
+            let currentVolume = 0;
+
+            if (status === 'speaking' && outputAnalyserRef.current) {
+                // Visualize Agent Output
+                const dataArray = new Uint8Array(outputAnalyserRef.current.frequencyBinCount);
+                outputAnalyserRef.current.getByteFrequencyData(dataArray);
+
+                // Calculate average volume
+                const sum = dataArray.reduce((a, b) => a + b, 0);
+                const avg = sum / dataArray.length;
+                currentVolume = avg * 2.5; // Boost for visual effect
+
+            } else if (status === 'connected' && inputAnalyserRef.current) {
+                // Visualize User Input (Mic)
+                const dataArray = new Uint8Array(inputAnalyserRef.current.frequencyBinCount);
+                inputAnalyserRef.current.getByteFrequencyData(dataArray);
+
+                const sum = dataArray.reduce((a, b) => a + b, 0);
+                const avg = sum / dataArray.length;
+                currentVolume = avg * 2.0;
             } else {
-                setVolume(10);
+                // Idle noise
+                currentVolume = Math.random() * 5 + 5;
             }
-        }, 100);
-        return () => clearInterval(interval);
+
+            // Smooth transition
+            setVolume(prev => prev + (currentVolume - prev) * 0.2);
+
+            animationFrameRef.current = requestAnimationFrame(updateVisualizer);
+        };
+
+        animationFrameRef.current = requestAnimationFrame(updateVisualizer);
+
+        return () => {
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+            }
+        };
     }, [status]);
 
     const connect = async () => {
@@ -64,6 +104,15 @@ export const TheUplink: React.FC = () => {
             // 1. Setup Audio Contexts
             inputContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
             outputContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+
+            // Setup Analysers
+            inputAnalyserRef.current = inputContextRef.current.createAnalyser();
+            inputAnalyserRef.current.fftSize = 256;
+            inputAnalyserRef.current.smoothingTimeConstant = 0.5;
+
+            outputAnalyserRef.current = outputContextRef.current.createAnalyser();
+            outputAnalyserRef.current.fftSize = 256;
+            outputAnalyserRef.current.smoothingTimeConstant = 0.5;
 
             // 2. Get Microphone Stream
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -99,7 +148,7 @@ export const TheUplink: React.FC = () => {
                         soundService.playSuccess();
 
                         // Start Input Streaming
-                        if (!inputContextRef.current) return;
+                        if (!inputContextRef.current || !inputAnalyserRef.current) return;
 
                         inputSourceRef.current = inputContextRef.current.createMediaStreamSource(stream);
                         processorRef.current = inputContextRef.current.createScriptProcessor(4096, 1, 1);
@@ -119,13 +168,15 @@ export const TheUplink: React.FC = () => {
                             });
                         };
 
-                        inputSourceRef.current.connect(processorRef.current);
+                        // Connect Graph: Source -> Analyser -> Processor -> Destination
+                        inputSourceRef.current.connect(inputAnalyserRef.current);
+                        inputAnalyserRef.current.connect(processorRef.current);
                         processorRef.current.connect(inputContextRef.current.destination);
                     },
                     onmessage: async (msg: LiveServerMessage) => {
                         const audioData = msg.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
 
-                        if (audioData && outputContextRef.current) {
+                        if (audioData && outputContextRef.current && outputAnalyserRef.current) {
                             setStatus('speaking');
                             const ctx = outputContextRef.current;
 
@@ -140,7 +191,10 @@ export const TheUplink: React.FC = () => {
                             // Schedule Playback
                             const source = ctx.createBufferSource();
                             source.buffer = buffer;
-                            source.connect(ctx.destination);
+
+                            // Connect Graph: Source -> Analyser -> Destination
+                            source.connect(outputAnalyserRef.current);
+                            outputAnalyserRef.current.connect(ctx.destination);
 
                             // Seamless queuing
                             const now = ctx.currentTime;
@@ -265,7 +319,7 @@ export const TheUplink: React.FC = () => {
 
                     {/* Core Pulse */}
                     <div
-                        className={`relative rounded-full flex items-center justify-center transition-all duration-100 ease-out
+                        className={`relative rounded-full flex items-center justify-center transition-all duration-75 ease-out
                             ${status === 'speaking' ? 'bg-emerald-500 blur-2xl' : active ? 'bg-emerald-900/50 blur-xl' : 'bg-zinc-800 blur-md'}
                         `}
                         style={{

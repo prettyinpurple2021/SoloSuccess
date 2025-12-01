@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db';
 import { searchIndex } from '../db/schema';
-import { eq, and, or, ilike, desc } from 'drizzle-orm';
+import { eq, and, or, ilike, desc, sql } from 'drizzle-orm';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { SearchIndexer } from '../utils/searchIndexer';
 
@@ -18,19 +18,24 @@ router.post('/', authMiddleware, async (req: any, res: any) => {
             return res.json([]);
         }
 
-        // Basic fuzzy search using ILIKE
-        // In a real production app with millions of rows, we'd use pg_trgm or tsvector
-        const results = await db.select().from(searchIndex)
+        // Full-Text Search using PostgreSQL tsvector
+        // Matches against both title and content with ranking
+        const results = await db.select({
+            entityId: searchIndex.entityId,
+            entityType: searchIndex.entityType,
+            title: searchIndex.title,
+            content: searchIndex.content,
+            updatedAt: searchIndex.updatedAt,
+            rank: sql<number>`ts_rank(to_tsvector('english', ${searchIndex.title} || ' ' || ${searchIndex.content}), plainto_tsquery('english', ${query}))`.as('rank')
+        })
+            .from(searchIndex)
             .where(
                 and(
                     eq(searchIndex.userId, userId),
-                    or(
-                        ilike(searchIndex.title, `%${query}%`),
-                        ilike(searchIndex.content, `%${query}%`)
-                    )
+                    sql`to_tsvector('english', ${searchIndex.title} || ' ' || ${searchIndex.content}) @@ plainto_tsquery('english', ${query})`
                 )
             )
-            .orderBy(desc(searchIndex.updatedAt))
+            .orderBy(desc(sql`rank`))
             .limit(20);
 
         const formatted = results.map(r => ({
