@@ -12,7 +12,7 @@ if (!connectionString) {
     console.warn("⚠️  WARNING: DATABASE_URL is not defined. The backend will crash if you try to query the DB.");
 }
 
-// Use a connection pool for production readiness
+// Connection pool configured for production readiness
 const pool = new Pool({
     connectionString: connectionString,
     max: 20, // Maximum number of clients in the pool
