@@ -21,21 +21,30 @@ export const TheDeck: React.FC = () => {
     const handleGenerate = async () => {
         setLoading(true);
         soundService.playClick();
-        const result = await geminiService.generatePitchDeck();
-        if (result) {
-            // Assign ID
-            result.id = `deck-${Date.now()}`;
+        try {
+            const result = await geminiService.generatePitchDeck();
 
-            setDeck(result);
-            await saveToVault(result);
-            setCurrentSlide(0);
+            // Validation
+            if (result && result.title && Array.isArray(result.slides) && result.slides.length > 0) {
+                // Assign ID
+                result.id = `deck-${Date.now()}`;
 
-            const { leveledUp } = await addXP(100);
-            showToast("DECK GENERATED", "Saved to The Vault.", "xp", 100);
-            if (leveledUp) showToast("RANK UP!", "You have reached a new founder level.", "success");
-            soundService.playSuccess();
-        } else {
-            showToast("GENERATION FAILED", "Could not create deck.", "error");
+                setDeck(result);
+                await saveToVault(result);
+                setCurrentSlide(0);
+
+                const { leveledUp } = await addXP(100);
+                showToast("DECK GENERATED", "Saved to The Vault.", "xp", 100);
+                if (leveledUp) showToast("RANK UP!", "You have reached a new founder level.", "success");
+                soundService.playSuccess();
+            } else {
+                console.error("Invalid deck data received:", result);
+                showToast("GENERATION FAILED", "AI returned incomplete data. Please try again.", "error");
+                soundService.playError();
+            }
+        } catch (error) {
+            console.error("Deck generation error:", error);
+            showToast("GENERATION FAILED", "An error occurred. Please try again.", "error");
             soundService.playError();
         }
         setLoading(false);

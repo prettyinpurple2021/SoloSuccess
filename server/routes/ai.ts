@@ -428,8 +428,18 @@ router.post('/pitch-deck', authMiddleware, requireAi, async (req: any, res: any)
             contents: prompt,
             config: { responseMimeType: "application/json", responseSchema: { type: Type.OBJECT, properties: { title: { type: Type.STRING }, slides: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { title: { type: Type.STRING }, keyPoint: { type: Type.STRING }, content: { type: Type.ARRAY, items: { type: Type.STRING } }, visualIdea: { type: Type.STRING } } } } } } }
         });
-        res.json({ ...JSON.parse(response.text || '{}'), generatedAt: new Date().toISOString() });
-    } catch (error) { res.status(500).json({ error: 'Generation failed' }); }
+
+        const data = JSON.parse(response.text || '{}');
+
+        if (!data.title || !Array.isArray(data.slides)) {
+            throw new Error("Invalid AI response structure");
+        }
+
+        res.json({ ...data, generatedAt: new Date().toISOString() });
+    } catch (error) {
+        console.error("Pitch Deck Generation Error:", error);
+        res.status(500).json({ error: 'Generation failed' });
+    }
 });
 
 // Blue Oceans
