@@ -14,7 +14,7 @@ export function Login() {
     React.useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
-            navigate('/app/dashboard');
+            navigate('/app/dashboard', { replace: true });
         }
     }, [navigate]);
 

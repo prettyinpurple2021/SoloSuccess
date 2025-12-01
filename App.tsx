@@ -40,7 +40,7 @@ import { KeyboardShortcutsOverlay } from './components/KeyboardShortcutsOverlay'
 import { AgentId, Task } from './types';
 import { Menu, NotebookPen } from 'lucide-react'
 import { useSwipe } from './hooks/useSwipe';
-import { Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams, useNavigate, Outlet, useOutletContext } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { LandingPage } from './components/LandingPage';
 import { Login } from './components/auth/Login';
@@ -53,6 +53,95 @@ import { PrivacyPolicy } from './components/marketing/PrivacyPolicy';
 import { TermsOfService } from './components/marketing/TermsOfService';
 import { AdminLogin } from './components/admin/AdminLogin';
 import { AdminDashboard } from './components/admin/AdminDashboard';
+
+
+// Context for child routes to access layout state/functions
+interface DashboardContextType {
+  handleViewChange: (view: string) => void;
+  handleEnterFocusMode: (task: Task) => void;
+  activeAgent: AgentId | null;
+  incomingAgentMessage: string | null;
+  clearIncomingMessage: () => void;
+}
+
+function DashboardContent() {
+  const { viewId } = useParams();
+  const currentView = viewId || 'dashboard';
+  const {
+    handleViewChange,
+    handleEnterFocusMode,
+    activeAgent,
+    incomingAgentMessage,
+    clearIncomingMessage
+  } = useOutletContext<DashboardContextType>();
+
+  switch (currentView) {
+    case 'dashboard':
+      return <Dashboard />;
+    case 'stalker':
+      return <CompetitorStalker onNavigate={handleViewChange} />;
+    case 'war-room':
+      return <WarRoom />;
+    case 'incinerator':
+      return <IdeaIncinerator />;
+    case 'roadmap':
+      return <TacticalRoadmap onEnterFocusMode={handleEnterFocusMode} />;
+    case 'treasury':
+      return <Treasury />;
+    case 'ironclad':
+      return <TheIronclad />;
+    case 'signal':
+      return <SignalTower />;
+    case 'studio':
+      return <TheStudio />;
+    case 'deck':
+      return <TheDeck />;
+    case 'codex':
+      return <TheCodex />;
+    case 'vault':
+      return <TheVault />;
+    case 'mainframe':
+      return <TheMainframe />;
+    case 'simulator':
+      return <TheSimulator />;
+    case 'network':
+      return <TheNetwork />;
+    case 'uplink':
+      return <TheUplink />;
+    case 'boardroom':
+      return <TheBoardroom />;
+    case 'pivot':
+      return <ThePivot />;
+    case 'sanctuary':
+      return <TheSanctuary />;
+    case 'architect':
+      return <TheArchitect />;
+    case 'academy':
+      return <TheAcademy />;
+    case 'tribe':
+      return <TheTribe />;
+    case 'amplifier':
+      return <TheAmplifier />;
+    case 'launchpad':
+      return <TheLaunchpad />;
+    case 'scout':
+      return <TheScout />;
+    case 'billing':
+      return <Billing />;
+    case 'settings':
+      return <Settings />;
+    case 'chat':
+      return activeAgent ? (
+        <AgentChat
+          agentId={activeAgent}
+          initialMessage={incomingAgentMessage}
+          onMessageConsumed={clearIncomingMessage}
+        />
+      ) : <Dashboard />;
+    default:
+      return <Dashboard />;
+  }
+}
 
 function DashboardLayout() {
   const { viewId } = useParams();
@@ -210,75 +299,6 @@ function DashboardLayout() {
     );
   }
 
-  const renderView = () => {
-    switch (currentView) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'stalker':
-        return <CompetitorStalker onNavigate={handleViewChange} />;
-      case 'war-room':
-        return <WarRoom />;
-      case 'incinerator':
-        return <IdeaIncinerator />;
-      case 'roadmap':
-        return <TacticalRoadmap onEnterFocusMode={handleEnterFocusMode} />;
-      case 'treasury':
-        return <Treasury />;
-      case 'ironclad':
-        return <TheIronclad />;
-      case 'signal':
-        return <SignalTower />;
-      case 'studio':
-        return <TheStudio />;
-      case 'deck':
-        return <TheDeck />;
-      case 'codex':
-        return <TheCodex />;
-      case 'vault':
-        return <TheVault />;
-      case 'mainframe':
-        return <TheMainframe />;
-      case 'simulator':
-        return <TheSimulator />;
-      case 'network':
-        return <TheNetwork />;
-      case 'uplink':
-        return <TheUplink />;
-      case 'boardroom':
-        return <TheBoardroom />;
-      case 'pivot':
-        return <ThePivot />;
-      case 'sanctuary':
-        return <TheSanctuary />;
-      case 'architect':
-        return <TheArchitect />;
-      case 'academy':
-        return <TheAcademy />;
-      case 'tribe':
-        return <TheTribe />;
-      case 'amplifier':
-        return <TheAmplifier />;
-      case 'launchpad':
-        return <TheLaunchpad />;
-      case 'scout':
-        return <TheScout />;
-      case 'billing':
-        return <Billing />;
-      case 'settings':
-        return <Settings />;
-      case 'chat':
-        return activeAgent ? (
-          <AgentChat
-            agentId={activeAgent}
-            initialMessage={incomingAgentMessage}
-            onMessageConsumed={clearIncomingMessage}
-          />
-        ) : <Dashboard />;
-      default:
-        return <Dashboard />;
-    }
-  };
-
   return (
     <div className="flex h-screen bg-[#050505] text-zinc-100 font-sans overflow-hidden relative selection:bg-emerald-500/30">
       {/* Enhanced Animated Background */}
@@ -361,7 +381,13 @@ function DashboardLayout() {
           {/* Content with transition */}
           <div className={`max-w-7xl mx-auto h-full transition-opacity duration-150 ${isTransitioning ? 'opacity-0' : 'opacity-100 animate-fade-in'
             }`}>
-            {renderView()}
+            <Outlet context={{
+              handleViewChange,
+              handleEnterFocusMode,
+              activeAgent,
+              incomingAgentMessage,
+              clearIncomingMessage
+            }} />
           </div>
         </div>
       </main>
@@ -400,12 +426,17 @@ function App() {
           <SystemBoot onComplete={() => window.location.href = '/app'} />
         </AuthGate>
       } />
-      <Route path="/app" element={<Navigate to="/app/dashboard" replace />} />
-      <Route path="/app/:viewId" element={
+
+      {/* Nested Route Structure */}
+      <Route path="/app" element={
         <AuthGate>
           <DashboardLayout />
         </AuthGate>
-      } />
+      }>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path=":viewId" element={<DashboardContent />} />
+      </Route>
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
 
