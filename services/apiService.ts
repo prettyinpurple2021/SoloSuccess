@@ -23,11 +23,17 @@ export const apiService = {
      */
     async generate(request: GenerateRequest): Promise<string> {
         try {
+            const token = localStorage.getItem('token');
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch(`${API_BASE_URL}/api/generate`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify(request)
             });
 
@@ -59,11 +65,17 @@ export const apiService = {
     },
     async post(endpoint: string, body: any): Promise<any> {
         try {
+            const token = localStorage.getItem('token');
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch(`${API_BASE_URL}/api${endpoint}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify(body)
             });
 
@@ -80,11 +92,17 @@ export const apiService = {
     },
     async get(endpoint: string): Promise<any> {
         try {
+            const token = localStorage.getItem('token');
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch(`${API_BASE_URL}/api${endpoint}`, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+                headers
             });
 
             if (!response.ok) {

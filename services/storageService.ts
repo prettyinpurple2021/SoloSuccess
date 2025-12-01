@@ -86,12 +86,14 @@ async function apiCall<T>(
         // Get Stack Auth user ID
         const stackApp = (window as any).stackApp;
         const userId = stackApp?.user?.id || '';
+        const token = localStorage.getItem('token');
 
         const options: RequestInit = {
             method,
             headers: {
                 'Content-Type': 'application/json',
                 'x-stack-user-id': userId, // Pass user ID to backend
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             }
         };
 
