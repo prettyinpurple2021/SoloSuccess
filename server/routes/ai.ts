@@ -419,9 +419,16 @@ router.post('/incinerator', authMiddleware, requireAi, async (req: any, res: any
 // Pitch Deck
 router.post('/pitch-deck', authMiddleware, requireAi, async (req: any, res: any) => {
     try {
+        const { businessName, description } = req.body;
         const userId = (req as AuthRequest).userId!;
         const context = await getContext(userId);
-        const prompt = `${context}\nGenerate 10-slide pitch deck. Return JSON with title, slides (title, keyPoint, content, visualIdea).`;
+
+        let specificContext = "";
+        if (businessName || description) {
+            specificContext = `BUSINESS NAME: "${businessName || ''}"\nDESCRIPTION: "${description || ''}"`;
+        }
+
+        const prompt = `${context}\n${specificContext}\nGenerate 10-slide pitch deck. Return JSON with title, slides (title, keyPoint, content, visualIdea).`;
 
         const response = await ai!.models.generateContent({
             model: 'gemini-2.5-flash',
@@ -798,9 +805,10 @@ router.post('/simulation', authMiddleware, requireAi, async (req: any, res: any)
 // Market Pulse
 router.post('/market-pulse', authMiddleware, requireAi, async (req: any, res: any) => {
     try {
+        const { context: industry } = req.body;
         const userId = (req as AuthRequest).userId!;
         const context = await getContext(userId);
-        const prompt = `${context}\nSearch for market trends/news for this industry. Summary bullet points.`;
+        const prompt = `${context}\nSearch for market trends/news for: "${industry || 'General Tech'}". Summary bullet points.`;
 
         const response = await ai!.models.generateContent({
             model: 'gemini-2.5-flash',

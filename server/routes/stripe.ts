@@ -3,6 +3,7 @@ import { stripe, PRICE_IDS } from '../stripe';
 import { db } from '../db';
 import { subscriptions, users, usageTracking } from '../db/schema';
 import { eq } from 'drizzle-orm';
+import { authMiddleware, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -49,13 +50,9 @@ router.post('/create-checkout-session', async (req, res) => {
 });
 
 // Get Subscription Status
-router.get('/subscription', async (req, res) => {
+router.get('/subscription', authMiddleware, async (req, res) => {
     try {
-        const userId = req.headers['x-user-id'] || req.query.userId;
-
-        if (!userId) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
+        const userId = (req as AuthRequest).userId!;
 
         const sub = await db.select().from(subscriptions)
             .where(eq(subscriptions.userId, Number(userId)))
@@ -73,13 +70,9 @@ router.get('/subscription', async (req, res) => {
 });
 
 // Get Usage Statistics
-router.get('/usage', async (req, res) => {
+router.get('/usage', authMiddleware, async (req, res) => {
     try {
-        const userId = req.headers['x-user-id'] || req.query.userId;
-
-        if (!userId) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
+        const userId = (req as AuthRequest).userId!;
 
         // Get current month in format YYYY-MM
         const currentMonth = new Date().toISOString().slice(0, 7);
