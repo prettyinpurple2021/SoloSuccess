@@ -276,14 +276,27 @@ export const storageService = {
 
     // --- Creative Assets ---
     async getCreativeAssets(): Promise<CreativeAsset[]> {
-        return apiCall<CreativeAsset[]>('GET', '/api/resources/creative', undefined, KEYS.CREATIVE_ASSETS, []);
+        return apiCall<CreativeAsset[]>('GET', '/api/assets', undefined, KEYS.CREATIVE_ASSETS, []);
     },
 
     async saveCreativeAsset(asset: CreativeAsset): Promise<void> {
-        await apiCall('POST', '/api/resources/creative', asset, KEYS.CREATIVE_ASSETS);
+        await apiCall('POST', '/api/assets', asset, KEYS.CREATIVE_ASSETS);
         const assets = await this.getCreativeAssets();
-        assets.unshift(asset);
+        // Check if update or insert
+        const index = assets.findIndex(a => a.id === asset.id);
+        if (index >= 0) {
+            assets[index] = asset;
+        } else {
+            assets.unshift(asset);
+        }
         set(KEYS.CREATIVE_ASSETS, assets);
+    },
+
+    async deleteCreativeAsset(id: string): Promise<void> {
+        await apiCall('DELETE', `/api/assets/${id}`);
+        const assets = await this.getCreativeAssets();
+        const filtered = assets.filter(a => a.id !== id);
+        set(KEYS.CREATIVE_ASSETS, filtered);
     },
 
     // --- Contacts ---

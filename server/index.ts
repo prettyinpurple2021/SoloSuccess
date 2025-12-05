@@ -119,9 +119,14 @@ import aiRouter from './routes/ai';
 
 // ... (imports)
 
+import assetsRouter from './routes/assets';
+
+// ... (imports)
+
 app.use('/api/admin', adminRouter);
 app.use('/api/contacts', contactsRouter);
 app.use('/api/pitch-decks', pitchDecksRouter);
+app.use('/api/assets', assetsRouter); // Added
 app.use('/api/stripe', stripeRouter);
 app.use('/api/resources', resourcesRouter);
 app.use('/api/ai', aiRouter);
