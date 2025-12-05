@@ -51,5 +51,18 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, '.'),
       }
     }
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom', 'react-router-dom'],
+            ui: ['lucide-react', 'framer-motion'],
+            stackframe: ['@stackframe/stack'],
+            utils: ['@google/generative-ai', 'date-fns']
+          }
+        }
+      },
+      chunkSizeWarningLimit: 1000
+    }
   };
 });

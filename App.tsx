@@ -1,58 +1,57 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Sidebar } from './components/Sidebar';
-import { Dashboard } from './components/Dashboard';
-import { CompetitorStalker } from './components/CompetitorStalker';
-import { AgentChat } from './components/AgentChat';
-import { WarRoom } from './components/WarRoom';
-import { IdeaIncinerator } from './components/IdeaIncinerator';
-import { TacticalRoadmap } from './components/TacticalRoadmap';
-import { storageService } from './services/storageService';
-import { Treasury } from './components/Treasury';
-import { Billing } from './components/Billing';
-import { SystemBoot } from './components/SystemBoot';
-import { CommandPalette } from './components/CommandPalette';
-import { Settings } from './components/Settings';
-import { ToastSystem } from './components/ToastSystem';
-import { Scratchpad } from './components/Scratchpad';
-import { FocusMode } from './components/FocusMode';
-import { SignalTower } from './components/SignalTower';
-import { TheStudio } from './components/TheStudio';
-import { TheDeck } from './components/TheDeck';
-import { TheCodex } from './components/TheCodex';
-import { TheVault } from './components/TheVault';
-import { TheMainframe } from './components/TheMainframe';
-import { TheSimulator } from './components/TheSimulator';
-import { TheNetwork } from './components/TheNetwork';
-import { TheIronclad } from './components/TheIronclad';
-import { TheUplink } from './components/TheUplink';
-import { TheBoardroom } from './components/TheBoardroom';
-import { ThePivot } from './components/ThePivot';
-import { TheSanctuary } from './components/TheSanctuary';
-import { TheArchitect } from './components/TheArchitect';
-import { TheAcademy } from './components/TheAcademy';
-import { TheTribe } from './components/TheTribe';
-import { TheAmplifier } from './components/TheAmplifier';
-import { TheLaunchpad } from './components/TheLaunchpad';
-import { TheScout } from './components/TheScout';
-import { AuthGate } from './components/AuthGate';
-import { KeyboardShortcutsOverlay } from './components/KeyboardShortcutsOverlay';
-import { AgentId, Task } from './types';
-import { Menu, NotebookPen } from 'lucide-react'
-import { useSwipe } from './hooks/useSwipe';
 import { Routes, Route, Navigate, useParams, useNavigate, Outlet, useOutletContext } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { LandingPage } from './components/LandingPage';
-import { Login } from './components/auth/Login';
-import { Signup } from './components/auth/Signup';
-import { FeaturesPage } from './components/marketing/FeaturesPage';
-import { ContactPage } from './components/marketing/ContactPage';
-import { PricingPage } from './components/marketing/PricingPage';
-import { AboutPage } from './components/marketing/AboutPage';
-import { PrivacyPolicy } from './components/marketing/PrivacyPolicy';
-import { TermsOfService } from './components/marketing/TermsOfService';
-import { AdminLogin } from './components/admin/AdminLogin';
-import { AdminDashboard } from './components/admin/AdminDashboard';
+
+// Lazy Load Components
+const Dashboard = React.lazy(() => import('./components/Dashboard').then(module => ({ default: module.Dashboard })));
+const CompetitorStalker = React.lazy(() => import('./components/CompetitorStalker').then(module => ({ default: module.CompetitorStalker })));
+const AgentChat = React.lazy(() => import('./components/AgentChat').then(module => ({ default: module.AgentChat })));
+const WarRoom = React.lazy(() => import('./components/WarRoom').then(module => ({ default: module.WarRoom })));
+const IdeaIncinerator = React.lazy(() => import('./components/IdeaIncinerator').then(module => ({ default: module.IdeaIncinerator })));
+const TacticalRoadmap = React.lazy(() => import('./components/TacticalRoadmap').then(module => ({ default: module.TacticalRoadmap })));
+const Treasury = React.lazy(() => import('./components/Treasury').then(module => ({ default: module.Treasury })));
+const Billing = React.lazy(() => import('./components/Billing').then(module => ({ default: module.Billing })));
+const SystemBoot = React.lazy(() => import('./components/SystemBoot').then(module => ({ default: module.SystemBoot })));
+const Settings = React.lazy(() => import('./components/Settings').then(module => ({ default: module.Settings })));
+const SignalTower = React.lazy(() => import('./components/SignalTower').then(module => ({ default: module.SignalTower })));
+const TheStudio = React.lazy(() => import('./components/TheStudio').then(module => ({ default: module.TheStudio })));
+const TheDeck = React.lazy(() => import('./components/TheDeck').then(module => ({ default: module.TheDeck })));
+const TheCodex = React.lazy(() => import('./components/TheCodex').then(module => ({ default: module.TheCodex })));
+const TheVault = React.lazy(() => import('./components/TheVault').then(module => ({ default: module.TheVault })));
+const TheMainframe = React.lazy(() => import('./components/TheMainframe').then(module => ({ default: module.TheMainframe })));
+const TheSimulator = React.lazy(() => import('./components/TheSimulator').then(module => ({ default: module.TheSimulator })));
+const TheNetwork = React.lazy(() => import('./components/TheNetwork').then(module => ({ default: module.TheNetwork })));
+const TheIronclad = React.lazy(() => import('./components/TheIronclad').then(module => ({ default: module.TheIronclad })));
+const TheUplink = React.lazy(() => import('./components/TheUplink').then(module => ({ default: module.TheUplink })));
+const TheBoardroom = React.lazy(() => import('./components/TheBoardroom').then(module => ({ default: module.TheBoardroom })));
+const ThePivot = React.lazy(() => import('./components/ThePivot').then(module => ({ default: module.ThePivot })));
+const TheSanctuary = React.lazy(() => import('./components/TheSanctuary').then(module => ({ default: module.TheSanctuary })));
+const TheArchitect = React.lazy(() => import('./components/TheArchitect').then(module => ({ default: module.TheArchitect })));
+const TheAcademy = React.lazy(() => import('./components/TheAcademy').then(module => ({ default: module.TheAcademy })));
+const TheTribe = React.lazy(() => import('./components/TheTribe').then(module => ({ default: module.TheTribe })));
+const TheAmplifier = React.lazy(() => import('./components/TheAmplifier').then(module => ({ default: module.TheAmplifier })));
+const TheLaunchpad = React.lazy(() => import('./components/TheLaunchpad').then(module => ({ default: module.TheLaunchpad })));
+const TheScout = React.lazy(() => import('./components/TheScout').then(module => ({ default: module.TheScout })));
+const LandingPage = React.lazy(() => import('./components/LandingPage').then(module => ({ default: module.LandingPage })));
+const Login = React.lazy(() => import('./components/auth/Login').then(module => ({ default: module.Login })));
+const Signup = React.lazy(() => import('./components/auth/Signup').then(module => ({ default: module.Signup })));
+const FeaturesPage = React.lazy(() => import('./components/marketing/FeaturesPage').then(module => ({ default: module.FeaturesPage })));
+const ContactPage = React.lazy(() => import('./components/marketing/ContactPage').then(module => ({ default: module.ContactPage })));
+const PricingPage = React.lazy(() => import('./components/marketing/PricingPage').then(module => ({ default: module.PricingPage })));
+const AboutPage = React.lazy(() => import('./components/marketing/AboutPage').then(module => ({ default: module.AboutPage })));
+const PrivacyPolicy = React.lazy(() => import('./components/marketing/PrivacyPolicy').then(module => ({ default: module.PrivacyPolicy })));
+const TermsOfService = React.lazy(() => import('./components/marketing/TermsOfService').then(module => ({ default: module.TermsOfService })));
+const AdminLogin = React.lazy(() => import('./components/admin/AdminLogin').then(module => ({ default: module.AdminLogin })));
+const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
+
+// Loading Component
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-[#050505]">
+    <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+  </div>
+);
 
 
 // Context for child routes to access layout state/functions
@@ -401,45 +400,46 @@ function DashboardLayout() {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/features" element={<FeaturesPage />} />
-      <Route path="/pricing" element={<PricingPage />} />
-      <Route path="/about" element={<AboutPage />} />
-      <Route path="/contact" element={<ContactPage />} />
-      <Route path="/privacy" element={<PrivacyPolicy />} />
-      <Route path="/terms" element={<TermsOfService />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/app/admin/login" element={
-        <AuthGate>
-          <AdminLogin />
-        </AuthGate>
-      } />
-      <Route path="/app/admin/dashboard" element={
-        <AuthGate>
-          <AdminDashboard />
-        </AuthGate>
-      } />
-      <Route path="/app/onboarding" element={
-        <AuthGate>
-          <SystemBoot onComplete={() => window.location.href = '/app'} />
-        </AuthGate>
-      } />
+    <React.Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/features" element={<FeaturesPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/app/admin/login" element={
+          <AuthGate>
+            <AdminLogin />
+          </AuthGate>
+        } />
+        <Route path="/app/admin/dashboard" element={
+          <AuthGate>
+            <AdminDashboard />
+          </AuthGate>
+        } />
+        <Route path="/app/onboarding" element={
+          <AuthGate>
+            <SystemBoot onComplete={() => window.location.href = '/app'} />
+          </AuthGate>
+        } />
 
-      {/* Nested Route Structure */}
-      <Route path="/app" element={
-        <AuthGate>
-          <DashboardLayout />
-        </AuthGate>
-      }>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path=":viewId" element={<DashboardContent />} />
-      </Route>
+        {/* Nested Route Structure */}
+        <Route path="/app" element={
+          <AuthGate>
+            <DashboardLayout />
+          </AuthGate>
+        }>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path=":viewId" element={<DashboardContent />} />
+        </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </React.Suspense>
   );
 }
 
