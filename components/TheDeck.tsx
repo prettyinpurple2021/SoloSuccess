@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Presentation, RefreshCcw, Download, Layout, ChevronRight, ChevronLeft, FileText, MonitorPlay, Save } from 'lucide-react';
+import { Presentation, RefreshCcw, Download, Layout, ChevronRight, ChevronLeft, FileText, MonitorPlay, Save, Edit2, Check, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { geminiService } from '../services/geminiService';
 import { PitchDeck, Slide } from '../types';
 import { addXP, showToast } from '../services/gameService';
@@ -11,11 +11,13 @@ export const TheDeck: React.FC = () => {
     const [deck, setDeck] = useState<PitchDeck | null>(null);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [imageLoading, setImageLoading] = useState(false);
 
     const saveToVault = async (newDeck: PitchDeck) => {
-
         const deckWithId = { ...newDeck, id: newDeck.id || `deck-${Date.now()}` };
         await storageService.savePitchDeck(deckWithId);
+        setDeck(deckWithId); // Update local state with saved version
     };
 
     const handleGenerate = async () => {
@@ -72,10 +74,66 @@ export const TheDeck: React.FC = () => {
             content += `## Slide ${i + 1}: ${slide.title}\n`;
             content += `**Key Takeaway:** ${slide.keyPoint}\n\n`;
             content += `**Content:**\n${slide.content.map(c => `- ${c}`).join('\n')}\n\n`;
-            content += `**Visual:** [${slide.visualIdea}]\n\n---\n\n`;
+            if (slide.imageUrl) {
+                content += `**Visual Asset:** ![Slide Image](${slide.imageUrl})\n\n`;
+            } else {
+                content += `**Visual Concept:** [${slide.visualIdea}]\n\n`;
+            }
+            content += `---\n\n`;
         });
         downloadMarkdown('Pitch_Deck_Outline', content);
         showToast("EXPORT COMPLETE", "Deck downloaded as Markdown.", "info");
+    };
+
+    const handleGenerateImage = async () => {
+        if (!deck) return;
+        setImageLoading(true);
+        soundService.playClick();
+
+        const slide = deck.slides[currentSlide];
+        const prompt = `Professional pitch deck slide visual. ${slide.visualIdea}. Style: Modern, Minimalist, Corporate, High Quality.`;
+
+        try {
+            const imageBase64 = await geminiService.generateBrandImage(prompt, "Modern Corporate");
+            if (imageBase64) {
+                const newDeck = { ...deck };
+                newDeck.slides[currentSlide].imageUrl = imageBase64;
+                setDeck(newDeck);
+                await saveToVault(newDeck);
+                showToast("VISUAL GENERATED", "Image added to slide.", "success");
+                soundService.playSuccess();
+            } else {
+                showToast("GENERATION FAILED", "Could not generate image.", "error");
+                soundService.playError();
+            }
+        } catch (error) {
+            console.error("Image gen error:", error);
+            showToast("ERROR", "Failed to generate visual.", "error");
+        }
+        setImageLoading(false);
+    };
+
+    const handleUpdateSlide = (field: keyof Slide, value: any, index?: number) => {
+        if (!deck) return;
+        const newDeck = { ...deck };
+        const slide = newDeck.slides[currentSlide];
+
+        if (field === 'content' && typeof index === 'number') {
+            slide.content[index] = value;
+        } else if (field === 'title' || field === 'keyPoint') {
+            (slide as any)[field] = value;
+        }
+
+        setDeck(newDeck);
+    };
+
+    const handleSaveEdit = async () => {
+        if (deck) {
+            await saveToVault(deck);
+            setIsEditing(false);
+            showToast("SAVED", "Deck updates saved.", "success");
+            soundService.playSuccess();
+        }
     };
 
     return (
@@ -86,17 +144,26 @@ export const TheDeck: React.FC = () => {
                     <div className="flex items-center gap-2 text-purple-500 font-mono text-xs font-bold uppercase tracking-widest mb-2">
                         <Presentation size={14} /> Investor Relations
                     </div>
-                    <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter">THE DECK</h2>
-                    <p className="text-zinc-400 mt-2">AI-generated pitch deck outlines and narrative flow.</p>
+                    <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter">THE DECK 2.0</h2>
+                    <p className="text-zinc-400 mt-2">AI-powered pitch deck creator with visual generation.</p>
                 </div>
                 <div className="flex gap-2 w-full md:w-auto">
                     {deck && (
-                        <button
-                            onClick={handleExport}
-                            className="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white rounded font-bold text-xs uppercase tracking-wider transition-all flex-1 md:flex-initial"
-                        >
-                            <Download size={16} /> Export
-                        </button>
+                        <>
+                            <button
+                                onClick={() => setIsEditing(!isEditing)}
+                                className={`flex items-center justify-center gap-2 px-4 py-2 border rounded font-bold text-xs uppercase tracking-wider transition-all flex-1 md:flex-initial ${isEditing ? 'bg-purple-900/50 border-purple-500 text-purple-300' : 'bg-zinc-900 hover:bg-zinc-800 border-zinc-700 text-white'}`}
+                            >
+                                {isEditing ? <Save size={16} onClick={(e) => { e.stopPropagation(); handleSaveEdit(); }} /> : <Edit2 size={16} />}
+                                {isEditing ? 'Save Changes' : 'Edit Mode'}
+                            </button>
+                            <button
+                                onClick={handleExport}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white rounded font-bold text-xs uppercase tracking-wider transition-all flex-1 md:flex-initial"
+                            >
+                                <Download size={16} /> Export
+                            </button>
+                        </>
                     )}
                     <button
                         onClick={handleGenerate}
@@ -104,7 +171,7 @@ export const TheDeck: React.FC = () => {
                         className="flex items-center justify-center gap-2 px-6 py-3 bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/50 text-purple-400 rounded font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-1 md:flex-initial"
                     >
                         {loading ? <RefreshCcw size={16} className="animate-spin" /> : <Layout size={16} />}
-                        {loading ? 'Drafting...' : 'Generate Deck'}
+                        {loading ? 'Drafting...' : 'New Deck'}
                     </button>
                 </div>
             </div>
@@ -127,11 +194,13 @@ export const TheDeck: React.FC = () => {
                 )}
 
                 {deck && (
-                    <div className="w-full max-w-4xl relative">
+                    <div className="w-full max-w-5xl relative">
                         {/* Save Indicator */}
-                        <div className="absolute -top-8 right-0 flex items-center gap-2 text-[10px] font-bold uppercase text-emerald-500 animate-in fade-in slide-in-from-bottom-2">
-                            <Save size={12} /> Auto-Saved to Vault
-                        </div>
+                        {!isEditing && (
+                            <div className="absolute -top-8 right-0 flex items-center gap-2 text-[10px] font-bold uppercase text-emerald-500 animate-in fade-in slide-in-from-bottom-2">
+                                <Check size={12} /> Saved to Vault
+                            </div>
+                        )}
 
                         {/* Controls */}
                         <div className="flex justify-between absolute top-1/2 -translate-y-1/2 w-full -ml-4 md:-ml-16 px-2 md:px-0 z-20 pointer-events-none">
@@ -160,28 +229,96 @@ export const TheDeck: React.FC = () => {
                                 Slide {currentSlide + 1}/{deck.slides.length} // {deck.title}
                             </div>
 
-                            <h1 className="text-4xl font-black tracking-tight mb-2 text-zinc-900">
-                                {deck.slides[currentSlide].title}
-                            </h1>
-                            <p className="text-purple-600 font-bold text-lg mb-8 uppercase tracking-wider flex items-center gap-2">
-                                <Layout size={18} /> {deck.slides[currentSlide].keyPoint}
-                            </p>
+                            {/* Title */}
+                            {isEditing ? (
+                                <input
+                                    type="text"
+                                    value={deck.slides[currentSlide].title}
+                                    onChange={(e) => handleUpdateSlide('title', e.target.value)}
+                                    className="text-4xl font-black tracking-tight mb-2 text-zinc-900 border-b-2 border-purple-200 focus:border-purple-600 focus:outline-none w-full bg-transparent"
+                                />
+                            ) : (
+                                <h1 className="text-4xl font-black tracking-tight mb-2 text-zinc-900">
+                                    {deck.slides[currentSlide].title}
+                                </h1>
+                            )}
+
+                            {/* Key Point */}
+                            <div className="text-purple-600 font-bold text-lg mb-8 uppercase tracking-wider flex items-center gap-2">
+                                <Layout size={18} />
+                                {isEditing ? (
+                                    <input
+                                        type="text"
+                                        value={deck.slides[currentSlide].keyPoint}
+                                        onChange={(e) => handleUpdateSlide('keyPoint', e.target.value)}
+                                        className="border-b border-purple-200 focus:border-purple-600 focus:outline-none w-full bg-transparent"
+                                    />
+                                ) : (
+                                    deck.slides[currentSlide].keyPoint
+                                )}
+                            </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 flex-1">
                                 <div className="space-y-4">
                                     {deck.slides[currentSlide].content.map((point, i) => (
                                         <div key={i} className="flex items-start gap-3 text-lg text-zinc-700 leading-relaxed">
                                             <span className="mt-1.5 w-2 h-2 bg-zinc-900 rounded-full shrink-0"></span>
-                                            {point}
+                                            {isEditing ? (
+                                                <textarea
+                                                    value={point}
+                                                    onChange={(e) => handleUpdateSlide('content', e.target.value, i)}
+                                                    className="w-full bg-zinc-50 border border-zinc-200 rounded p-2 text-sm focus:border-purple-500 focus:outline-none resize-none"
+                                                    rows={2}
+                                                />
+                                            ) : (
+                                                point
+                                            )}
                                         </div>
                                     ))}
                                 </div>
 
-                                {/* Visual Placeholder */}
-                                <div className="bg-zinc-100 border-2 border-dashed border-zinc-300 rounded-lg flex flex-col items-center justify-center p-6 text-center text-zinc-400">
-                                    <FileText size={32} className="mb-2 opacity-50" />
-                                    <p className="text-xs font-bold uppercase tracking-widest mb-2 text-zinc-500">Visual Concept</p>
-                                    <p className="text-sm italic">"{deck.slides[currentSlide].visualIdea}"</p>
+                                {/* Visual Area */}
+                                <div className="relative group">
+                                    {deck.slides[currentSlide].imageUrl ? (
+                                        <div className="relative h-full w-full rounded-lg overflow-hidden border border-zinc-200 shadow-inner bg-zinc-100">
+                                            <img
+                                                src={deck.slides[currentSlide].imageUrl}
+                                                alt="Slide Visual"
+                                                className="w-full h-full object-cover"
+                                            />
+                                            {/* Regenerate Button Overlay */}
+                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                <button
+                                                    onClick={handleGenerateImage}
+                                                    disabled={imageLoading}
+                                                    className="bg-white text-black px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider hover:scale-105 transition-transform flex items-center gap-2"
+                                                >
+                                                    <RefreshCcw size={14} /> Regenerate Visual
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="h-full bg-zinc-100 border-2 border-dashed border-zinc-300 rounded-lg flex flex-col items-center justify-center p-6 text-center text-zinc-400 hover:border-purple-400 hover:bg-purple-50 transition-colors group">
+                                            {imageLoading ? (
+                                                <div className="flex flex-col items-center">
+                                                    <Loader2 size={32} className="animate-spin text-purple-600 mb-2" />
+                                                    <p className="text-xs font-bold uppercase tracking-widest text-purple-600">Rendering...</p>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <ImageIcon size={32} className="mb-2 opacity-50 group-hover:text-purple-500 group-hover:opacity-100 transition-all" />
+                                                    <p className="text-xs font-bold uppercase tracking-widest mb-2 text-zinc-500 group-hover:text-purple-600">Visual Concept</p>
+                                                    <p className="text-sm italic mb-4">"{deck.slides[currentSlide].visualIdea}"</p>
+                                                    <button
+                                                        onClick={handleGenerateImage}
+                                                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded text-xs font-bold uppercase tracking-wider transition-all shadow-lg hover:shadow-purple-500/25"
+                                                    >
+                                                        Generate Visual
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

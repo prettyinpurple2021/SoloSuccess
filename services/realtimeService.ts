@@ -17,7 +17,7 @@ class RealtimeService {
         }
 
         this.userId = userId;
-        const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
+        const API_URL = (import.meta as any).env?.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : window.location.origin);
 
         this.socket = io(API_URL, {
             transports: ['websocket', 'polling'],

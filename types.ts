@@ -107,6 +107,7 @@ export interface Slide {
     keyPoint: string;
     content: string[];
     visualIdea: string;
+    imageUrl?: string;
 }
 
 export interface PitchDeck {
