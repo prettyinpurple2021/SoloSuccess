@@ -235,7 +235,7 @@ export async function incrementUsage(
         const month = new Date().toISOString().slice(0, 7);
 
         // Get or create usage record
-        let usage = await db.select()
+        const usage = await db.select()
             .from(usageTracking)
             .where(
                 and(

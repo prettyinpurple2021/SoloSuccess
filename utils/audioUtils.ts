@@ -27,7 +27,7 @@ export function pcmToBase64(data: Float32Array): string {
   for (let i = 0; i < l; i++) {
     // Convert Float32 (-1.0 to 1.0) to Int16 (-32768 to 32767)
     // Clamping is usually good practice but for simplicity:
-    let s = Math.max(-1, Math.min(1, data[i]));
+    const s = Math.max(-1, Math.min(1, data[i]));
     int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
   }
   return arrayBufferToBase64(int16.buffer);

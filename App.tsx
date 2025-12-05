@@ -2,7 +2,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Routes, Route, Navigate, useParams, useNavigate, Outlet, useOutletContext } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Menu, NotebookPen } from 'lucide-react';
+import { Task, AgentId } from './types';
+import { storageService } from './services/storageService';
+import { useSwipe } from './hooks/useSwipe';
+import { FocusMode } from './components/FocusMode';
+import { CommandPalette } from './components/CommandPalette';
+import { ToastSystem } from './components/ToastSystem';
+import { Scratchpad } from './components/Scratchpad';
+import { KeyboardShortcutsOverlay } from './components/KeyboardShortcutsOverlay';
+import { AuthGate } from './components/AuthGate';
 
 // Lazy Load Components
 const Dashboard = React.lazy(() => import('./components/Dashboard').then(module => ({ default: module.Dashboard })));

@@ -75,7 +75,7 @@ router.get('/usage', authMiddleware, async (req, res) => {
         const userId = (req as AuthRequest).userId!;
 
         // Get current month in format YYYY-MM
-        const currentMonth = new Date().toISOString().slice(0, 7);
+        const _currentMonth = new Date().toISOString().slice(0, 7);
 
         const usage = await db.select().from(usageTracking)
             .where(
@@ -145,15 +145,17 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
     // Handle the event
     switch (event.type) {
-        case 'checkout.session.completed':
+        case 'checkout.session.completed': {
             const session = event.data.object;
             await handleCheckoutCompleted(session);
             break;
+        }
         case 'customer.subscription.updated':
-        case 'customer.subscription.deleted':
+        case 'customer.subscription.deleted': {
             const subscription = event.data.object;
             await handleSubscriptionUpdated(subscription);
             break;
+        }
         default:
             console.log(`Unhandled event type ${event.type}`);
     }
