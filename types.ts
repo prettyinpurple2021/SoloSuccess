@@ -490,6 +490,7 @@ export interface UserProgress {
 export interface WarRoomEntry {
     speaker: AgentId;
     text: string;
+    stance?: 'for' | 'against' | 'neutral';
     timestamp?: number;
 }
 
@@ -497,6 +498,7 @@ export interface WarRoomResponse {
     dialogue: WarRoomEntry[];
     consensus: string;
     actionPlan: string[];
+    sessionId?: string; // For follow-up continuity
 }
 
 export interface SavedWarRoomSession extends WarRoomResponse {

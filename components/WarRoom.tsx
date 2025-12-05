@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Swords, Send, Terminal, CheckCircle2, Target, Loader2, ArrowRight, KanbanSquare, Save, History, Archive, Trash2, Clock, Download } from 'lucide-react';
+import { Swords, Send, Terminal, CheckCircle2, Target, Loader2, ArrowRight, KanbanSquare, Save, History, Archive, Trash2, Clock, Download, MessageSquarePlus, ThumbsUp, ThumbsDown, Minus } from 'lucide-react';
 import { AGENTS } from '../constants';
 import { geminiService } from '../services/geminiService';
 import { WarRoomEntry, WarRoomResponse, AgentId, Task, SavedWarRoomSession } from '../types';
@@ -10,6 +10,9 @@ import { storageService } from '../services/storageService';
 
 export const WarRoom: React.FC = () => {
     const [topic, setTopic] = useState('');
+    const [followUpInput, setFollowUpInput] = useState('');
+    const [followUpMode, setFollowUpMode] = useState(false);
+    const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [fullResponse, setFullResponse] = useState<WarRoomResponse | null>(null);
     const [displayedDialogue, setDisplayedDialogue] = useState<WarRoomEntry[]>([]);
@@ -81,19 +84,39 @@ export const WarRoom: React.FC = () => {
         return () => clearInterval(interval);
     }, [fullResponse]);
 
-    const handleConvene = async () => {
-        if (!topic.trim()) return;
+    const handleConvene = async (isFollowUp = false) => {
+        const promptText = isFollowUp ? followUpInput : topic;
+        if (!promptText.trim()) return;
+        
         setLoading(true);
-        setFullResponse(null);
-        setDisplayedDialogue([]);
+        if (!isFollowUp) {
+            setFullResponse(null);
+            setDisplayedDialogue([]);
+            setCurrentSessionId(null);
+        }
         setShowConsensus(false);
         setDeployed(false);
+        setFollowUpMode(false);
         soundService.playClick();
 
         try {
-            const response = await geminiService.generateWarRoomDebate(topic);
+            const response = await geminiService.generateWarRoomDebate(
+                promptText, 
+                isFollowUp ? currentSessionId || undefined : undefined
+            );
             if (response) {
-                setFullResponse(response);
+                if (isFollowUp && fullResponse) {
+                    // Append new dialogue to existing
+                    const combinedResponse: WarRoomResponse = {
+                        ...response,
+                        dialogue: [...fullResponse.dialogue, ...response.dialogue]
+                    };
+                    setFullResponse(combinedResponse);
+                } else {
+                    setFullResponse(response);
+                }
+                setCurrentSessionId(response.sessionId || `war-${Date.now()}`);
+                setFollowUpInput('');
             } else {
                 showToast("ERROR", "Failed to convene War Room.", "error");
             }
@@ -273,6 +296,25 @@ export const WarRoom: React.FC = () => {
                             const agent = AGENTS[entry.speaker];
                             const isLeft = entry.speaker === AgentId.ROXY || entry.speaker === AgentId.LEXI;
 
+                            const getStanceBadge = () => {
+                                if (!entry.stance) return null;
+                                const badgeStyles = {
+                                    for: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50',
+                                    against: 'bg-red-500/20 text-red-400 border-red-500/50',
+                                    neutral: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/50'
+                                };
+                                const icons = {
+                                    for: <ThumbsUp size={10} />,
+                                    against: <ThumbsDown size={10} />,
+                                    neutral: <Minus size={10} />
+                                };
+                                return (
+                                    <span className={`ml-2 px-2 py-0.5 rounded border text-[9px] font-bold uppercase flex items-center gap-1 ${badgeStyles[entry.stance]}`}>
+                                        {icons[entry.stance]} {entry.stance}
+                                    </span>
+                                );
+                            };
+
                             return (
                                 <div key={idx} className={styles.container}>
                                     <div className={`flex gap-4 max-w-full ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
@@ -288,6 +330,7 @@ export const WarRoom: React.FC = () => {
                                             <div className={`flex items-center gap-2 ${isLeft ? '' : 'justify-end'}`}>
                                                 <span className={styles.name}>{agent.name}</span>
                                                 <span className="text-[10px] text-zinc-600 font-mono uppercase mb-1">// {agent.title.split(' ')[0]}</span>
+                                                {getStanceBadge()}
                                             </div>
                                             <p className={styles.text}>{entry.text}</p>
                                         </div>
@@ -367,27 +410,47 @@ export const WarRoom: React.FC = () => {
 
                     {/* Input Area */}
                     <div className="p-4 bg-zinc-950 border-t border-zinc-800 relative z-20">
-                        <div className={`flex items-center bg-zinc-900 border border-zinc-800 rounded-lg focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
-                            <div className="pl-4 text-zinc-500">
-                                <Terminal size={20} />
-                            </div>
-                            <input
-                                type="text"
-                                value={topic}
-                                onChange={(e) => setTopic(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleConvene()}
-                                placeholder="Enter a strategic dilemma (e.g., 'Should we pivot to Enterprise sales?')"
-                                className="w-full bg-transparent border-none text-white placeholder-zinc-600 px-4 py-4 focus:ring-0"
-                                disabled={loading}
-                            />
+                        {showConsensus && fullResponse && !followUpMode ? (
                             <button
-                                onClick={handleConvene}
-                                disabled={loading || !topic.trim()}
-                                className="mr-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded text-sm font-bold tracking-wide uppercase transition-colors disabled:bg-zinc-800 disabled:text-zinc-600 flex items-center gap-2"
+                                onClick={() => setFollowUpMode(true)}
+                                className="w-full flex items-center justify-center gap-2 py-4 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-400 hover:text-white transition-all font-bold text-sm uppercase tracking-wider"
                             >
-                                {loading ? <Loader2 size={16} className="animate-spin" /> : <><Send size={16} /> Convene</>}
+                                <MessageSquarePlus size={18} /> Challenge the Council
                             </button>
-                        </div>
+                        ) : (
+                            <div className={`flex items-center bg-zinc-900 border border-zinc-800 rounded-lg focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                <div className="pl-4 text-zinc-500">
+                                    {followUpMode ? <MessageSquarePlus size={20} /> : <Terminal size={20} />}
+                                </div>
+                                <input
+                                    type="text"
+                                    value={followUpMode ? followUpInput : topic}
+                                    onChange={(e) => followUpMode ? setFollowUpInput(e.target.value) : setTopic(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleConvene(followUpMode)}
+                                    placeholder={followUpMode 
+                                        ? "Challenge the advisors (e.g., 'What about international markets?')" 
+                                        : "Enter a strategic dilemma (e.g., 'Should we pivot to Enterprise sales?')"}
+                                    className="w-full bg-transparent border-none text-white placeholder-zinc-600 px-4 py-4 focus:ring-0"
+                                    disabled={loading}
+                                />
+                                {followUpMode && (
+                                    <button
+                                        onClick={() => { setFollowUpMode(false); setFollowUpInput(''); }}
+                                        className="mr-2 text-zinc-500 hover:text-white px-2"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => handleConvene(followUpMode)}
+                                    disabled={loading || !(followUpMode ? followUpInput.trim() : topic.trim())}
+                                    className={`mr-2 px-6 py-2 rounded text-sm font-bold tracking-wide uppercase transition-colors disabled:bg-zinc-800 disabled:text-zinc-600 flex items-center gap-2
+                                        ${followUpMode ? 'bg-purple-600 hover:bg-purple-500 text-white' : 'bg-indigo-600 hover:bg-indigo-500 text-white'}`}
+                                >
+                                    {loading ? <Loader2 size={16} className="animate-spin" /> : <><Send size={16} /> {followUpMode ? 'Challenge' : 'Convene'}</>}
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                 </div>
