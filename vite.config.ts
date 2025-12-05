@@ -50,13 +50,13 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, '.'),
       }
-    }
+    },
     build: {
       rollupOptions: {
         output: {
           manualChunks: {
             vendor: ['react', 'react-dom', 'react-router-dom'],
-            ui: ['lucide-react', 'framer-motion'],
+            ui: ['lucide-react'],
             stackframe: ['@stackframe/stack'],
             utils: ['@google/generative-ai', 'date-fns']
           }
