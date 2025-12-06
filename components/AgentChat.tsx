@@ -1,7 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Network, Info, MessageSquare, ListTodo, CheckCircle2, Clock, AlertCircle, Trash2, RefreshCcw } from 'lucide-react';
-import { AgentId, ChatMessage, Task } from '../types';
+import { AgentId, ChatMessage, Task, AgentTool } from '../types';
+import { AgentToolbar } from './AgentToolbar';
 import { AGENTS } from '../constants';
 import { geminiService } from '../services/geminiService';
 import { soundService } from '../services/soundService';
@@ -131,6 +132,30 @@ export const AgentChat: React.FC<AgentChatProps> = ({ agentId, initialMessage, o
         setLoading(false);
     };
 
+    // Handle tool actions from AgentToolbar
+    const handleToolAction = async (tool: AgentTool, context?: string) => {
+        // Get last few messages for context
+        const recentMessages = messages.slice(-5).map(m => m.text).join('\n');
+        
+        const toolPrompt = `[TOOL: ${tool.label}] ${tool.description}. Based on our conversation, please execute this action.\n\nRecent context:\n${recentMessages}`;
+        
+        soundService.playClick();
+        setLoading(true);
+        
+        const history = messages.map(m => ({ role: m.role, text: m.text }));
+        const responseText = await geminiService.getAgentResponse(agentId, history, toolPrompt);
+        
+        const toolMsg: ChatMessage = { role: 'model', text: responseText, timestamp: Date.now() };
+        setMessages(prev => [...prev, toolMsg]);
+        
+        soundService.playSuccess();
+        const { leveledUp } = await addXP(15);
+        showToast(`${tool.label.toUpperCase()}`, `${agent.name} completed the action.`, 'xp', 15);
+        if (leveledUp) showToast('RANK UP!', 'You have reached a new founder level.', 'success');
+        
+        setLoading(false);
+    };
+
     return (
 
         <div className="flex flex-col fixed inset-0 z-50 md:relative md:inset-auto md:z-auto md:h-[calc(100vh-4rem)] max-h-[100vh] md:max-h-[800px] glass-panel rounded-none md:rounded-xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300 relative">
@@ -245,6 +270,14 @@ export const AgentChat: React.FC<AgentChatProps> = ({ agentId, initialMessage, o
                             </div>
                         )}
                     </div>
+
+                    {/* Agent Tools */}
+                    <AgentToolbar 
+                        agentId={agentId} 
+                        onToolAction={handleToolAction} 
+                        disabled={loading}
+                        chatContext={messages.slice(-3).map(m => m.text).join('\n')}
+                    />
 
                     {/* Input */}
                     <div className="p-3 md:p-4 bg-black/20 border-t border-white/5 backdrop-blur-md relative z-20 safe-bottom shrink-0">

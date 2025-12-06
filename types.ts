@@ -13,6 +13,37 @@ export interface Agent {
     description: string;
     color: string;
     avatar: string;
+    tools?: AgentTool[];
+}
+
+// Agent Enhancement Types
+export interface AgentTool {
+    id: string;
+    label: string;
+    icon: string; // Lucide icon name
+    description: string;
+    action: string; // API endpoint or action type
+}
+
+export interface AgentMemory {
+    id?: number;
+    userId: number;
+    agentId?: string; // null = shared memory
+    memoryType: 'fact' | 'preference' | 'goal' | 'blocker';
+    content: string;
+    timestamp: string;
+}
+
+export interface AgentSuggestion {
+    id: string;
+    agentId: AgentId;
+    type: 'action' | 'reminder' | 'insight';
+    title: string;
+    description: string;
+    actionLabel?: string;
+    actionPayload?: any;
+    priority: 'low' | 'medium' | 'high';
+    dismissed?: boolean;
 }
 
 export interface ChatMessage {
