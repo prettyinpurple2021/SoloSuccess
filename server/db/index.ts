@@ -25,7 +25,7 @@ const pool = new Pool({
 
 // The pool will emit an error on behalf of any idle client it contains
 // if a backend error or network partition happens
-pool.on('error', (err, client) => {
+pool.on('error', (err, _client) => {
     console.error('Unexpected error on idle client', err);
     // process.exit(-1); // Do not exit, let the pool handle reconnection for new clients
 });

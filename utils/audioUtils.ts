@@ -1,5 +1,5 @@
 
-import { Blob } from "@google/genai";
+// Audio utility functions for processing PCM audio data
 
 export function base64ToUint8Array(base64: string): Uint8Array {
   const binaryString = atob(base64);
@@ -47,8 +47,8 @@ export async function decodeAudioData(
   for (let channel = 0; channel < numChannels; channel++) {
     const channelData = buffer.getChannelData(channel);
     for (let i = 0; i < frameCount; i++) {
-        // Convert Int16 to Float32
-        channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+      // Convert Int16 to Float32
+      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
     }
   }
   return buffer;

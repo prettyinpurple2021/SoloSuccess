@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, '.', '');
+  const _env = loadEnv(mode, '.', '');
   return {
     server: {
       port: 3001,  // Frontend on 3001

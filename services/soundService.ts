@@ -6,7 +6,7 @@ class SoundService {
     private audioCtx: AudioContext | null = null;
     private gainNode: GainNode | null = null;
     private enabled: boolean = true;
-    
+
     // Focus Drone Nodes
     private droneOsc1: OscillatorNode | null = null;
     private droneOsc2: OscillatorNode | null = null;
@@ -35,10 +35,10 @@ class SoundService {
 
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
-        
+
         osc.type = type;
         osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
-        
+
         gain.connect(this.audioCtx.destination);
         gain.gain.setValueAtTime(vol, this.audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + duration);
@@ -60,7 +60,7 @@ class SoundService {
         if (!this.enabled) return;
         this.init();
         if (!this.audioCtx) return;
-        
+
         const now = this.audioCtx.currentTime;
         [440, 554, 659, 880].forEach((freq, i) => {
             const osc = this.audioCtx!.createOscillator();
@@ -121,7 +121,7 @@ class SoundService {
 
     public stopFocusDrone() {
         if (!this.audioCtx || !this.droneGain) return;
-        
+
         // Fade out
         try {
             this.droneGain.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 1);
@@ -130,7 +130,7 @@ class SoundService {
                 if (this.droneOsc2) { this.droneOsc2.stop(); this.droneOsc2 = null; }
                 this.droneGain = null;
             }, 1000);
-        } catch (e) {
+        } catch (_e) {
             // Safety catch if audio context was suspended/closed
         }
     }

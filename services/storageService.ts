@@ -5,7 +5,7 @@ import {
     UserProgress, Task, ChatMessage, CompetitorReport, BusinessContext, BrandDNA,
     PitchDeck, CreativeAsset, Contact, LaunchStrategy, TribeBlueprint,
     SOP, JobDescription, InterviewGuide, ProductSpec, PivotAnalysis,
-    BoardMeetingReport, SavedCodeSnippet, SavedWarRoomSession, LegalDocType,
+    BoardMeetingReport, SavedCodeSnippet, SavedWarRoomSession,
     RoleplayFeedback, ContentAmplification, SimulationResult
 } from '../types';
 

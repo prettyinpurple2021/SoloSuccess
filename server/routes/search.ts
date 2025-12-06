@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db';
 import { searchIndex } from '../db/schema';
-import { eq, and, or, ilike, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { SearchIndexer } from '../utils/searchIndexer';
 
@@ -11,7 +11,7 @@ const router = Router();
 router.post('/', authMiddleware, async (req: any, res: any) => {
     try {
         const userId = (req as AuthRequest).userId!;
-        const { q, filters } = req.query; // q can be in query or body, let's check both
+        // Extract query from query params or body
         const query = (req.query.q as string) || (req.body.query as string) || '';
 
         if (!query || query.length < 2) {

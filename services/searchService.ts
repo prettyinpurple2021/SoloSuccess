@@ -1,5 +1,4 @@
 // Universal Search Service
-import { api as apiService } from './api';
 
 export interface SearchResult {
     id: string;
