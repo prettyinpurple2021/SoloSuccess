@@ -12,7 +12,9 @@ router.post('/', authMiddleware, async (req: any, res: any) => {
     try {
         const userId = (req as AuthRequest).userId!;
         // Extract query from query params or body
-        const query = (req.query.q as string) || (req.body.query as string) || '';
+        // Accept query only if it is a string (prevent arrays/type confusion)
+        let rawQuery = req.query.q ?? req.body.query;
+        const query = (typeof rawQuery === 'string') ? rawQuery : '';
 
         if (!query || query.length < 2) {
             return res.json([]);
