@@ -46,6 +46,9 @@ const TheLaunchpad = React.lazy(() => import('./components/TheLaunchpad').then(m
 const TheScout = React.lazy(() => import('./components/TheScout').then(module => ({ default: module.TheScout })));
 const AnalyticsDashboard = React.lazy(() => import('./components/AnalyticsDashboard').then(module => ({ default: module.AnalyticsDashboard })));
 const TeamWorkspace = React.lazy(() => import('./components/TeamWorkspace').then(module => ({ default: module.TeamWorkspace })));
+const GoalTracker = React.lazy(() => import('./components/GoalTracker').then(module => ({ default: module.GoalTracker })));
+const IntegrationHub = React.lazy(() => import('./components/IntegrationHub').then(module => ({ default: module.IntegrationHub })));
+const AgentBuilder = React.lazy(() => import('./components/AgentBuilder').then(module => ({ default: module.AgentBuilder })));
 const LandingPage = React.lazy(() => import('./components/LandingPage').then(module => ({ default: module.LandingPage })));
 const Login = React.lazy(() => import('./components/auth/Login').then(module => ({ default: module.Login })));
 const Signup = React.lazy(() => import('./components/auth/Signup').then(module => ({ default: module.Signup })));
@@ -139,6 +142,12 @@ function DashboardContent() {
       return <TheScout />;
     case 'team':
       return <TeamWorkspace />;
+    case 'goals':
+      return <GoalTracker />;
+    case 'integrations':
+      return <IntegrationHub />;
+    case 'agent-builder':
+      return <AgentBuilder />;
     case 'billing':
       return <Billing />;
     case 'settings':
@@ -394,7 +403,7 @@ function DashboardLayout() {
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8 relative custom-scrollbar z-10">
           {/* Decorative top border */}
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
 
           {/* Content with transition */}
           <div className={`max-w-7xl mx-auto h-full transition-opacity duration-150 ${isTransitioning ? 'opacity-0' : 'opacity-100 animate-fade-in'

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Eye, ShieldAlert, Swords, Flame, KanbanSquare, Power, Search, Command, Settings, Trophy, ChevronUp, NotebookPen, X, Menu, Coins, Radio, Palette, Presentation, BookTemplate, Archive, Terminal, GitBranch, Scale, Mic, Crown, Compass, Moon, Box, GraduationCap, Flag, Megaphone, Rocket, UserPlus, BarChart3, UsersRound } from 'lucide-react';
+import { LayoutDashboard, Users, Eye, ShieldAlert, Swords, Flame, KanbanSquare, Power, Search, Command, Settings, Trophy, ChevronUp, NotebookPen, X, Menu, Coins, Radio, Palette, Presentation, BookTemplate, Archive, Terminal, GitBranch, Scale, Mic, Crown, Compass, Moon, Box, GraduationCap, Flag, Megaphone, Rocket, UserPlus, BarChart3, UsersRound, Target, Plug2, Bot } from 'lucide-react';
 import { AGENTS } from '../constants';
 import { AgentId, BusinessContext } from '../types';
 import { getUserProgress, subscribeToToasts, getXPForLevel } from '../services/gameService';
@@ -155,6 +155,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 { id: 'team', label: 'Team Workspace', icon: <UsersRound size={18} className="text-teal-400" />, colorClass: 'text-teal-400' },
                 { id: 'scout', label: 'The Scout', icon: <UserPlus size={18} className="text-indigo-400" />, colorClass: 'text-indigo-400' },
                 { id: 'treasury', label: 'The Treasury', icon: <Coins size={18} className="text-amber-500" />, colorClass: 'text-amber-500' },
+                { id: 'goals', label: 'Goal Tracker', icon: <Target size={18} className="text-lime-400" />, colorClass: 'text-lime-400' },
                 { id: 'ironclad', label: 'The Ironclad', icon: <Scale size={18} className="text-slate-400" />, colorClass: 'text-slate-300' }
             ]
         },
@@ -165,6 +166,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 { id: 'academy', label: 'The Academy', icon: <GraduationCap size={18} className="text-white" />, colorClass: 'text-white' },
                 { id: 'sanctuary', label: 'The Sanctuary', icon: <Moon size={18} className="text-zinc-300" />, colorClass: 'text-zinc-200' },
                 { id: 'billing', label: 'Billing & Plan', icon: <Coins size={18} className="text-emerald-400" />, colorClass: 'text-emerald-400' },
+                { id: 'integrations', label: 'Integrations', icon: <Plug2 size={18} className="text-cyan-400" />, colorClass: 'text-cyan-400' },
+                { id: 'agent-builder', label: 'Agent Builder', icon: <Bot size={18} className="text-purple-400" />, colorClass: 'text-purple-400' },
                 { id: 'vault', label: 'The Vault', icon: <Archive size={18} />, colorClass: 'text-white' },
                 ...(isAdmin ? [{
                     id: 'admin-dashboard',
