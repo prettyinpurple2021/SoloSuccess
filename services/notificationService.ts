@@ -65,7 +65,7 @@ class NotificationService {
     /**
      * Mark notification as read
      */
-    async markAsRead(id: number): Promise<void> {
+    async markAsRead(id: string): Promise<void> {
         try {
             const token = localStorage.getItem('token');
             await fetch(`/api/notifications/${id}/read`, {

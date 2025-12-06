@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Presentation, RefreshCcw, Download, Layout, ChevronRight, ChevronLeft, FileText, MonitorPlay, Save, Edit2, Check, Image as ImageIcon, Loader2 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Presentation, RefreshCcw, Download, Layout, ChevronRight, ChevronLeft, FileText, MonitorPlay, Save, Edit2, Check, Image as ImageIcon, Loader2, FileType, Printer, Code2, ChevronDown } from 'lucide-react';
 import { geminiService } from '../services/geminiService';
 import { PitchDeck, Slide } from '../types';
 import { addXP, showToast } from '../services/gameService';
@@ -13,6 +13,15 @@ export const TheDeck: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [imageLoading, setImageLoading] = useState(false);
+    const [showExportMenu, setShowExportMenu] = useState(false);
+    const [selectedTemplate, setSelectedTemplate] = useState<'minimal' | 'dark' | 'corporate'>('dark');
+    const exportMenuRef = useRef<HTMLDivElement>(null);
+
+    const templates = {
+        minimal: { name: 'Minimal', bg: 'bg-white', text: 'text-gray-900', accent: 'text-gray-600' },
+        dark: { name: 'Dark', bg: 'bg-zinc-900', text: 'text-white', accent: 'text-emerald-400' },
+        corporate: { name: 'Corporate', bg: 'bg-slate-800', text: 'text-white', accent: 'text-blue-400' }
+    };
 
     const saveToVault = async (newDeck: PitchDeck) => {
         const deckWithId = { ...newDeck, id: newDeck.id || `deck-${Date.now()}` };
@@ -67,22 +76,88 @@ export const TheDeck: React.FC = () => {
         }
     };
 
-    const handleExport = () => {
+    const handleExport = (format: 'markdown' | 'html' | 'pdf') => {
         if (!deck) return;
-        let content = `# ${deck.title}\nGenerated: ${new Date(deck.generatedAt).toLocaleDateString()}\n\n`;
-        deck.slides.forEach((slide, i) => {
-            content += `## Slide ${i + 1}: ${slide.title}\n`;
-            content += `**Key Takeaway:** ${slide.keyPoint}\n\n`;
-            content += `**Content:**\n${slide.content.map(c => `- ${c}`).join('\n')}\n\n`;
-            if (slide.imageUrl) {
-                content += `**Visual Asset:** ![Slide Image](${slide.imageUrl})\n\n`;
+        soundService.playClick();
+        setShowExportMenu(false);
+
+        if (format === 'markdown') {
+            let content = `# ${deck.title}\nGenerated: ${new Date(deck.generatedAt).toLocaleDateString()}\n\n`;
+            deck.slides.forEach((slide, i) => {
+                content += `## Slide ${i + 1}: ${slide.title}\n`;
+                content += `**Key Takeaway:** ${slide.keyPoint}\n\n`;
+                content += `**Content:**\n${slide.content.map(c => `- ${c}`).join('\n')}\n\n`;
+                if (slide.imageUrl) {
+                    content += `**Visual Asset:** ![Slide Image](${slide.imageUrl})\n\n`;
+                } else {
+                    content += `**Visual Concept:** [${slide.visualIdea}]\n\n`;
+                }
+                content += `---\n\n`;
+            });
+            downloadMarkdown('Pitch_Deck_Outline', content);
+            showToast("EXPORT COMPLETE", "Deck downloaded as Markdown.", "info");
+        } else if (format === 'html' || format === 'pdf') {
+            const template = templates[selectedTemplate];
+            const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${deck.title}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; }
+        .slide { page-break-after: always; min-height: 100vh; padding: 48px; display: flex; flex-direction: column; }
+        .slide:last-child { page-break-after: avoid; }
+        .slide-number { font-size: 12px; opacity: 0.5; margin-bottom: 24px; }
+        .slide-title { font-size: 36px; font-weight: 700; margin-bottom: 16px; }
+        .key-point { font-size: 18px; font-style: italic; margin-bottom: 32px; padding: 16px; border-left: 4px solid; }
+        .content-list { list-style: none; }
+        .content-list li { font-size: 20px; padding: 12px 0; border-bottom: 1px solid rgba(128,128,128,0.2); }
+        .visual-note { margin-top: auto; font-size: 14px; opacity: 0.6; }
+        .image-container { margin-top: 24px; text-align: center; }
+        .image-container img { max-width: 80%; max-height: 300px; border-radius: 8px; }
+        @media print { .slide { min-height: 100vh; } }
+    </style>
+</head>
+<body class="${template.bg.replace('bg-', '')}">
+${deck.slides.map((slide, i) => `
+    <div class="slide" style="background: ${template.bg === 'bg-white' ? '#ffffff' : template.bg === 'bg-zinc-900' ? '#18181b' : '#1e293b'}; color: ${template.text === 'text-white' ? '#ffffff' : '#111827'}">
+        <div class="slide-number">Slide ${i + 1} of ${deck.slides.length}</div>
+        <h1 class="slide-title">${slide.title}</h1>
+        <div class="key-point" style="border-color: ${template.accent === 'text-emerald-400' ? '#34d399' : template.accent === 'text-blue-400' ? '#60a5fa' : '#4b5563'}; color: ${template.accent === 'text-emerald-400' ? '#34d399' : template.accent === 'text-blue-400' ? '#60a5fa' : '#4b5563'}">
+            ${slide.keyPoint}
+        </div>
+        <ul class="content-list">
+            ${slide.content.map(c => `<li>${c}</li>`).join('')}
+        </ul>
+        ${slide.imageUrl ? `<div class="image-container"><img src="${slide.imageUrl}" alt="Slide visual" /></div>` : `<div class="visual-note">Visual concept: ${slide.visualIdea}</div>`}
+    </div>
+`).join('')}
+</body>
+</html>`;
+
+            if (format === 'pdf') {
+                const printWindow = window.open('', '_blank');
+                if (printWindow) {
+                    printWindow.document.write(htmlContent);
+                    printWindow.document.close();
+                    setTimeout(() => {
+                        printWindow.print();
+                    }, 500);
+                    showToast("PRINT READY", "Use browser print to save as PDF.", "info");
+                }
             } else {
-                content += `**Visual Concept:** [${slide.visualIdea}]\n\n`;
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${deck.title.replace(/\s+/g, '_')}_Deck.html`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast("EXPORT COMPLETE", "Deck downloaded as HTML.", "info");
             }
-            content += `---\n\n`;
-        });
-        downloadMarkdown('Pitch_Deck_Outline', content);
-        showToast("EXPORT COMPLETE", "Deck downloaded as Markdown.", "info");
+        }
     };
 
     const handleGenerateImage = async () => {
@@ -157,12 +232,57 @@ export const TheDeck: React.FC = () => {
                                 {isEditing ? <Save size={16} onClick={(e) => { e.stopPropagation(); handleSaveEdit(); }} /> : <Edit2 size={16} />}
                                 {isEditing ? 'Save Changes' : 'Edit Mode'}
                             </button>
-                            <button
-                                onClick={handleExport}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white rounded font-bold text-xs uppercase tracking-wider transition-all flex-1 md:flex-initial"
-                            >
-                                <Download size={16} /> Export
-                            </button>
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowExportMenu(!showExportMenu)}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white rounded font-bold text-xs uppercase tracking-wider transition-all"
+                                >
+                                    <Download size={16} />
+                                    Export
+                                    <ChevronDown size={14} className={`transition-transform ${showExportMenu ? 'rotate-180' : ''}`} />
+                                </button>
+                                {showExportMenu && (
+                                    <div className="absolute right-0 top-full mt-2 w-56 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="p-2 border-b border-zinc-700">
+                                            <p className="text-[10px] text-zinc-500 uppercase tracking-wider px-2 mb-1">Template Style</p>
+                                            <div className="flex gap-1">
+                                                {(Object.keys(templates) as Array<keyof typeof templates>).map((key) => (
+                                                    <button
+                                                        key={key}
+                                                        onClick={() => setSelectedTemplate(key)}
+                                                        className={`flex-1 px-2 py-1.5 text-[10px] rounded font-medium transition-all ${selectedTemplate === key ? 'bg-purple-500 text-white' : 'bg-zinc-800 text-zinc-400 hover:text-white'}`}
+                                                    >
+                                                        {templates[key].name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="p-1">
+                                            <button onClick={() => handleExport('pdf')} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-white hover:bg-zinc-800 rounded transition-colors">
+                                                <Printer size={16} className="text-purple-400" />
+                                                <div className="text-left">
+                                                    <span className="block">Print to PDF</span>
+                                                    <span className="text-[10px] text-zinc-500">Best for presentations</span>
+                                                </div>
+                                            </button>
+                                            <button onClick={() => handleExport('html')} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-white hover:bg-zinc-800 rounded transition-colors">
+                                                <Code2 size={16} className="text-blue-400" />
+                                                <div className="text-left">
+                                                    <span className="block">HTML File</span>
+                                                    <span className="text-[10px] text-zinc-500">Open in browser</span>
+                                                </div>
+                                            </button>
+                                            <button onClick={() => handleExport('markdown')} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-white hover:bg-zinc-800 rounded transition-colors">
+                                                <FileType size={16} className="text-emerald-400" />
+                                                <div className="text-left">
+                                                    <span className="block">Markdown</span>
+                                                    <span className="text-[10px] text-zinc-500">For documentation</span>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </>
                     )}
                     <button

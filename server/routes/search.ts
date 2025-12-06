@@ -12,13 +12,14 @@ router.post('/', authMiddleware, async (req: any, res: any) => {
     try {
         const userId = (req as AuthRequest).userId!;
         // Extract query from query params or body
-        // Accept query only if it is a string (prevent arrays/type confusion)
-        let rawQuery = req.query.q ?? req.body.query;
-        const query = (typeof rawQuery === 'string') ? rawQuery : '';
-
-        if (!query || query.length < 2) {
+        const rawQuery = req.query.q ?? req.body.query;
+        
+        // Validate that query is a string at runtime (prevent arrays/type confusion)
+        if (typeof rawQuery !== 'string' || !rawQuery || rawQuery.length < 2) {
             return res.json([]);
         }
+        
+        const query = rawQuery;
 
         // Full-Text Search using PostgreSQL tsvector
         // Matches against both title and content with ranking
