@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import './index.css'; // CRITICAL: This was missing - caused all CSS to break in production
 import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './components/AuthProvider';
