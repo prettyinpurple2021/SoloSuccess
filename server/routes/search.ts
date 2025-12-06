@@ -14,7 +14,7 @@ router.post('/', authMiddleware, async (req: any, res: any) => {
         // Extract query from query params or body
         const query = (req.query.q as string) || (req.body.query as string) || '';
 
-        if (typeof query !== 'string' || !query || query.length < 2) {
+        if (!query || query.length < 2) {
             return res.json([]);
         }
 
