@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Users,
@@ -6,8 +6,7 @@ import {
     Activity,
     Server,
     LogOut,
-    Shield,
-    Search
+    Shield
 } from 'lucide-react';
 import { UserTable } from './UserTable';
 import { SubscriptionMetrics } from './SubscriptionMetrics';

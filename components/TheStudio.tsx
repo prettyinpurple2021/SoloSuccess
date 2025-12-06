@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Paintbrush, Image as ImageIcon, Loader2, Download, Sparkles, Palette, Layers, Save, Type, Trash2, Copy, Grid, X } from 'lucide-react';
+import { Paintbrush, Image as ImageIcon, Loader2, Download, Sparkles, Palette, Layers, Type, Trash2, Copy, Grid, X } from 'lucide-react';
 import { geminiService } from '../services/geminiService';
 import { addXP, showToast } from '../services/gameService';
 import { soundService } from '../services/soundService';

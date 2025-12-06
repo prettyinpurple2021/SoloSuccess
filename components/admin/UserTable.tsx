@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MoreVertical, Ban, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Ban, CheckCircle } from 'lucide-react';
 
 interface User {
     id: number;

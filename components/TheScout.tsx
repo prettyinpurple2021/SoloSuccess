@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { UserPlus, Users, FileText, CheckCircle2, AlertTriangle, Copy, Check, Loader2, Briefcase, ListTodo, Ear } from 'lucide-react';
+import { UserPlus, Users, CheckCircle2, Copy, Loader2, Briefcase, ListTodo, Ear } from 'lucide-react';
 import { geminiService } from '../services/geminiService';
 import { JobDescription, InterviewGuide, SOP } from '../types';
 import { addXP, showToast } from '../services/gameService';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { MarketingLayout } from './layout/MarketingLayout';
-import { Target, Zap, Shield, Cpu, BarChart3, Users, Brain, Rocket, Lock } from 'lucide-react';
+import { Target, Zap, Shield, BarChart3, Brain, Rocket } from 'lucide-react';
 
 export function FeaturesPage() {
     return (

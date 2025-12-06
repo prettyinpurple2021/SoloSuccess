@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Routes, Route, Navigate, useParams, useNavigate, Outlet, useOutletContext } from 'react-router-dom';
 import { Loader2, Menu, NotebookPen } from 'lucide-react';

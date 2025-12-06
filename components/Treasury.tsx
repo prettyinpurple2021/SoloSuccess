@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Coins, TrendingUp, TrendingDown, DollarSign, Calculator, AlertTriangle, Lightbulb, Loader2 } from 'lucide-react';
+import { Coins, TrendingUp, DollarSign, Calculator, AlertTriangle, Lightbulb, Loader2 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 import { FinancialContext, FinancialAudit } from '../types';
 import { geminiService } from '../services/geminiService';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Loader2, Lock, Mail, ArrowRight, User } from 'lucide-react';
+import { Loader2, Lock, Mail, ArrowRight } from 'lucide-react';
 
 export function Signup() {
     const navigate = useNavigate();
