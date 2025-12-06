@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Eye, ShieldAlert, Swords, Flame, KanbanSquare, Power, Search, Command, Settings, Trophy, ChevronUp, NotebookPen, X, Menu, Coins, Radio, Palette, Presentation, BookTemplate, Archive, Terminal, GitBranch, Scale, Mic, Crown, Compass, Moon, Box, GraduationCap, Flag, Megaphone, Rocket, UserPlus } from 'lucide-react';
+import { LayoutDashboard, Users, Eye, ShieldAlert, Swords, Flame, KanbanSquare, Power, Search, Command, Settings, Trophy, ChevronUp, NotebookPen, X, Menu, Coins, Radio, Palette, Presentation, BookTemplate, Archive, Terminal, GitBranch, Scale, Mic, Crown, Compass, Moon, Box, GraduationCap, Flag, Megaphone, Rocket, UserPlus, BarChart3, UsersRound } from 'lucide-react';
 import { AGENTS } from '../constants';
 import { AgentId, BusinessContext } from '../types';
 import { getUserProgress, subscribeToToasts, getXPForLevel } from '../services/gameService';
@@ -119,6 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {
             title: "Intelligence",
             items: [
+                { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={18} className="text-emerald-500" />, colorClass: 'text-emerald-400' },
                 { id: 'stalker', label: 'Competitor Stalker', icon: <Eye size={18} />, colorClass: 'text-white' },
                 { id: 'signal', label: 'Signal Tower', icon: <Radio size={18} className="text-cyan-500" />, colorClass: 'text-cyan-400' },
                 { id: 'pivot', label: 'The Pivot', icon: <Compass size={18} className="text-cyan-400" />, colorClass: 'text-cyan-400' }
@@ -151,6 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 { id: 'roadmap', label: 'Tactical Roadmap', icon: <KanbanSquare size={18} />, colorClass: 'text-white' },
                 { id: 'launchpad', label: 'The Launchpad', icon: <Rocket size={18} className="text-orange-500" />, colorClass: 'text-orange-500' },
                 { id: 'network', label: 'The Network', icon: <Users size={18} className="text-blue-500" />, colorClass: 'text-blue-500' },
+                { id: 'team', label: 'Team Workspace', icon: <UsersRound size={18} className="text-teal-400" />, colorClass: 'text-teal-400' },
                 { id: 'scout', label: 'The Scout', icon: <UserPlus size={18} className="text-indigo-400" />, colorClass: 'text-indigo-400' },
                 { id: 'treasury', label: 'The Treasury', icon: <Coins size={18} className="text-amber-500" />, colorClass: 'text-amber-500' },
                 { id: 'ironclad', label: 'The Ironclad', icon: <Scale size={18} className="text-slate-400" />, colorClass: 'text-slate-300' }

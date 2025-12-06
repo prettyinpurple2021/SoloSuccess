@@ -10,6 +10,7 @@ import { FocusMode } from './components/FocusMode';
 import { CommandPalette } from './components/CommandPalette';
 import { ToastSystem } from './components/ToastSystem';
 import { Scratchpad } from './components/Scratchpad';
+import { NotificationBell } from './components/NotificationBell';
 import { KeyboardShortcutsOverlay } from './components/KeyboardShortcutsOverlay';
 import { AuthGate } from './components/AuthGate';
 
@@ -43,6 +44,8 @@ const TheTribe = React.lazy(() => import('./components/TheTribe').then(module =>
 const TheAmplifier = React.lazy(() => import('./components/TheAmplifier').then(module => ({ default: module.TheAmplifier })));
 const TheLaunchpad = React.lazy(() => import('./components/TheLaunchpad').then(module => ({ default: module.TheLaunchpad })));
 const TheScout = React.lazy(() => import('./components/TheScout').then(module => ({ default: module.TheScout })));
+const AnalyticsDashboard = React.lazy(() => import('./components/AnalyticsDashboard').then(module => ({ default: module.AnalyticsDashboard })));
+const TeamWorkspace = React.lazy(() => import('./components/TeamWorkspace').then(module => ({ default: module.TeamWorkspace })));
 const LandingPage = React.lazy(() => import('./components/LandingPage').then(module => ({ default: module.LandingPage })));
 const Login = React.lazy(() => import('./components/auth/Login').then(module => ({ default: module.Login })));
 const Signup = React.lazy(() => import('./components/auth/Signup').then(module => ({ default: module.Signup })));
@@ -134,10 +137,14 @@ function DashboardContent() {
       return <TheLaunchpad />;
     case 'scout':
       return <TheScout />;
+    case 'team':
+      return <TeamWorkspace />;
     case 'billing':
       return <Billing />;
     case 'settings':
       return <Settings />;
+    case 'analytics':
+      return <AnalyticsDashboard />;
     case 'chat':
       return activeAgent ? (
         <AgentChat
@@ -370,16 +377,19 @@ function DashboardLayout() {
               SOLO_SUCCESS<span className="text-gradient">_AI</span>
             </h1>
           </div>
-          <button
-            onClick={() => setIsScratchpadOpen(!isScratchpadOpen)}
-            className={`p-2 rounded-lg transition-all hover-scale active:scale-95 ${isScratchpadOpen
-              ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20'
-              : 'hover:bg-white/5 text-zinc-400 hover:text-white'
-              }`}
-            aria-label="Toggle scratchpad"
-          >
-            <NotebookPen size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <button
+              onClick={() => setIsScratchpadOpen(!isScratchpadOpen)}
+              className={`p-2 rounded-lg transition-all hover-scale active:scale-95 ${isScratchpadOpen
+                ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20'
+                : 'hover:bg-white/5 text-zinc-400 hover:text-white'
+                }`}
+              aria-label="Toggle scratchpad"
+            >
+              <NotebookPen size={20} />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8 relative custom-scrollbar z-10">

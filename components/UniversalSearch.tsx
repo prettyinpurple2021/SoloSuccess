@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, Clock, FileText, MessageSquare, Users, Flag, TrendingUp, Filter } from 'lucide-react';
-import { searchService, SearchResult } from '../services/searchService';
+import { Search, X, Clock, FileText, MessageSquare, Users, Flag, TrendingUp, Filter, Sparkles, Calendar, Tag } from 'lucide-react';
+import { searchService, SearchResult, SearchFilters } from '../services/searchService';
 
 interface UniversalSearchProps {
     isOpen: boolean;
@@ -15,6 +15,11 @@ export function UniversalSearch({ isOpen, onClose, onNavigate }: UniversalSearch
     const [isLoading, setIsLoading] = useState(false);
     const [recentSearches, setRecentSearches] = useState<string[]>([]);
     const [showFilters, setShowFilters] = useState(false);
+    const [activeFilters, setActiveFilters] = useState<SearchFilters>({});
+    const [suggestions] = useState([
+        'completed tasks', 'pending tasks', 'competitor analysis',
+        'pitch deck', 'financial projections', 'team contacts'
+    ]);
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -36,13 +41,28 @@ export function UniversalSearch({ isOpen, onClose, onNavigate }: UniversalSearch
 
         const searchDebounced = setTimeout(async () => {
             setIsLoading(true);
-            const searchResults = await searchService.search(query);
+            const searchResults = await searchService.search(query, activeFilters);
             setResults(searchResults);
             setIsLoading(false);
         }, 300);
 
         return () => clearTimeout(searchDebounced);
-    }, [query]);
+    }, [query, activeFilters]);
+
+    const toggleTypeFilter = (type: string) => {
+        setActiveFilters(prev => {
+            const currentTypes = prev.types || [];
+            if (currentTypes.includes(type)) {
+                return { ...prev, types: currentTypes.filter(t => t !== type) };
+            } else {
+                return { ...prev, types: [...currentTypes, type] };
+            }
+        });
+    };
+
+    const clearFilters = () => {
+        setActiveFilters({});
+    };
 
     const handleSearch = (searchQuery: string) => {
         setQuery(searchQuery);
@@ -122,6 +142,39 @@ export function UniversalSearch({ isOpen, onClose, onNavigate }: UniversalSearch
                     </button>
                 </div>
 
+                {/* Filter Panel */}
+                {showFilters && (
+                    <div className="px-6 py-3 border-b border-zinc-800 bg-zinc-900/50 animate-in slide-in-from-top-2 duration-200">
+                        <div className="flex items-center justify-between mb-3">
+                            <p className="text-xs uppercase tracking-wider text-zinc-500 font-bold flex items-center gap-2">
+                                <Filter size={12} /> Filter by Type
+                            </p>
+                            {(activeFilters.types?.length || 0) > 0 && (
+                                <button
+                                    onClick={clearFilters}
+                                    className="text-xs text-emerald-400 hover:text-emerald-300"
+                                >
+                                    Clear all
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {['task', 'chat', 'contact', 'report', 'document', 'warroom'].map(type => (
+                                <button
+                                    key={type}
+                                    onClick={() => toggleTypeFilter(type)}
+                                    className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all ${activeFilters.types?.includes(type)
+                                        ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                                        : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                                    }`}
+                                >
+                                    {type}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Results */}
                 <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
                     {isLoading ? (
@@ -165,7 +218,28 @@ export function UniversalSearch({ isOpen, onClose, onNavigate }: UniversalSearch
                         </div>
                     ) : (
                         <div className="p-6">
-                            <p className="text-xs uppercase tracking-wider text-zinc-600 font-bold mb-4">Recent Searches</p>
+                            {/* Quick Suggestions */}
+                            <div className="mb-6">
+                                <p className="text-xs uppercase tracking-wider text-zinc-600 font-bold mb-3 flex items-center gap-2">
+                                    <Sparkles size={12} className="text-emerald-500" /> Quick Suggestions
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {suggestions.map((suggestion, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => handleSearch(suggestion)}
+                                            className="px-3 py-1.5 text-xs bg-zinc-800 border border-zinc-700 rounded-full text-zinc-400 hover:text-white hover:border-zinc-500 transition-all"
+                                        >
+                                            {suggestion}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Recent Searches */}
+                            <p className="text-xs uppercase tracking-wider text-zinc-600 font-bold mb-4 flex items-center gap-2">
+                                <Clock size={12} /> Recent Searches
+                            </p>
                             {recentSearches.length > 0 ? (
                                 <div className="space-y-2">
                                     {recentSearches.map((search, i) => (
