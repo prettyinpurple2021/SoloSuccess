@@ -29,7 +29,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.6",
-    "recharts": "^3.4.1",
+    "recharts": "^3.5.0",
     "resend": "^6.5.2",
     "socket.io-client": "^4.8.1",
     "vite": "^6.2.0"
