@@ -19,7 +19,7 @@
     "@google/genai": "^1.30.0",
     "@google/generative-ai": "^0.24.1",
     "@stackframe/stack": "^2.8.52",
-    "@stripe/stripe-js": "^8.5.2",
+    "@stripe/stripe-js": "^8.5.3",
     "@upstash/redis": "^1.35.6",
     "@vitejs/plugin-react": "^5.0.0",
     "dotenv": "^17.2.3",
